@@ -622,13 +622,18 @@ class Component extends DCLogic {
     // No intro gate any more: start the song on the guest's first tap / key press
     // anywhere on the page (browsers only allow audio after a user gesture).
     // A tap on the music button itself is left to toggleMusic.
+    // Keep listening until the song actually starts: a swipe to scroll doesn't count
+    // as permission to play sound on phones, so the first touch may fail — the next
+    // tap will succeed. Stop once it's playing, or if the guest used the music button.
+    const kickEvents = ['click','touchend','pointerup','keydown'];
+    this._stopKick = () => kickEvents.forEach((n) => window.removeEventListener(n, this._musicKick, true));
     this._musicKick = (ev) => {
-      ['pointerdown','keydown','touchend'].forEach((n) => window.removeEventListener(n, this._musicKick, true));
       const t = ev && ev.target;
-      if (t && t.closest && t.closest('[data-music-btn]')) return;
-      if (!this.state.playing) this.startMusic();
+      if (t && t.closest && t.closest('[data-music-btn]')) { this._stopKick(); return; }
+      if (this._userToggled || this.state.playing) { this._stopKick(); return; }
+      this.startMusic();
     };
-    ['pointerdown','keydown','touchend'].forEach((n) => window.addEventListener(n, this._musicKick, true));
+    kickEvents.forEach((n) => window.addEventListener(n, this._musicKick, true));
     // Also try to start straight away. Most phone browsers block sound until the
     // guest taps; where the browser allows it, the song starts on load.
     this.startMusic();
@@ -639,8 +644,7 @@ class Component extends DCLogic {
     clearInterval(this._cd);
     clearTimeout(this._loaderTimeout);
     if (this._musicKick) {
-      ['pointerdown','keydown','touchstart','click','scroll','wheel'].forEach((ev) =>
-        window.removeEventListener(ev, this._musicKick, true));
+      this._stopKick && this._stopKick();
     }
     if (this.audioRef.current) this.audioRef.current.pause();
     if (this._onScroll) {
@@ -744,7 +748,7 @@ class Component extends DCLogic {
       onVinylMove: (e) => this.onVinylMove(e),
       onVinylUp: (e) => this.onVinylUp(e),
       audioRef: this.audioRef,
-      toggleMusic: () => { if (this.state.playing) this.pauseMusic(); else this.startMusic(); },
+      toggleMusic: () => { this._userToggled = true; if (this.state.playing) this.pauseMusic(); else this.startMusic(); },
       openLink: (ev) => {
         const a = ev.currentTarget;
         const href = a && a.getAttribute('href');
