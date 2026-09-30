@@ -8,10 +8,10 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Nupur &amp; Aditya · Wedding Invitation">
 <meta property="og:description" content="We're getting married. Join us to celebrate.">
-<meta property="og:image" content="https://adityadoesux.github.io/nupur-aditya/assets/og.jpg">
+<meta property="og:image" content="https://nupurandaditya.online/assets/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:url" content="https://adityadoesux.github.io/nupur-aditya/">
+<meta property="og:url" content="https://nupurandaditya.online/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#EFE2D8">
 <link rel="icon" type="image/png" href="assets/an-monogram.png">
@@ -159,9 +159,9 @@
       </div>
 
       <!-- scroll hint -->
-      <div style="position: absolute; left: 0; right: 0; bottom: 22px; z-index: 6; text-align: center; color: #364ABF; animation: an-bob 2.4s ease-in-out infinite; pointer-events: none;">
-        <div style="font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: .8; color: #ffffff; font-family: Cormorant Garamond; font-weight: 800">Scroll</div>
-        <div style="font-size: 16px; line-height: 1; color: #ffffff">⌄</div>
+      <div data-scroll-hint="1" style="position: fixed; left: 0; right: 0; bottom: 92px; z-index: 70; transition: opacity .4s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; color: #ffffff; animation: an-bobx 2s ease-in-out infinite; pointer-events: none; filter: drop-shadow(0 1px 6px rgba(0,0,0,.55));">
+        <div style="font-size: 15px; letter-spacing: 4px; text-transform: uppercase; color: #ffffff; font-family: 'Cormorant Garamond', serif; font-weight: 700; padding-left: 4px">Scroll</div>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </div>
     </section>
 
@@ -496,6 +496,12 @@ class Component extends DCLogic {
   }
 
   componentDidMount() {
+    // scroll hint: visible on the first screen, fades out once the guest scrolls
+    this._hintScroll = () => {
+      const h = document.querySelector('[data-scroll-hint]');
+      if (h) h.style.opacity = window.scrollY > 40 ? '0' : '1';
+    };
+    window.addEventListener('scroll', this._hintScroll, { passive: true });
     // hold the intro loader until the first hero photo is decoded
     const hideLoader = () => {
       const l = this.loaderRef.current;
@@ -626,6 +632,7 @@ class Component extends DCLogic {
   }
 
   componentWillUnmount() {
+    window.removeEventListener('scroll', this._hintScroll);
     clearInterval(this._cd);
     clearTimeout(this._loaderTimeout);
     if (this._musicKick) {
