@@ -15,6 +15,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#EFE2D8">
 <link rel="icon" type="image/png" href="assets/an-monogram.png">
+<link rel="preload" as="image" href="assets/hands-holding.webp" fetchpriority="high">
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/cormorant-garamond-latin-400-normal.woff2" crossorigin>
 <script src="assets/react.production.min.js"></script>
 <script src="assets/react-dom.production.min.js"></script>
 <script src="assets/dc-runtime.js"></script>
@@ -25,7 +27,8 @@
 <link rel="stylesheet" href="assets/fonts.css">
 <style>
   *{ box-sizing:border-box; }
-  html,body{ margin:0; padding:0; background:#EFE2D8; }
+  html,body{ margin:0; padding:0; background:#EFE2D8; max-width:100%; overflow-x:hidden; }
+  @supports (overflow-x:clip){ html,body{ overflow-x:clip; } }
   @keyframes an-sway{ 0%,100%{ transform:rotate(-2.2deg); } 50%{ transform:rotate(2.2deg); } }
   @keyframes an-sway2{ 0%,100%{ transform:rotate(2deg); } 50%{ transform:rotate(-2.6deg); } }
   @keyframes an-heartfloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
@@ -81,10 +84,10 @@
   </div>
 
   <!-- floating blossom petals -->
-  <div style="position: static; inset: 0; pointer-events: none; z-index: 60; overflow: hidden">{{ petals }}</div>
+  <div style="position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden">{{ petals }}</div>
 
   <!-- background music -->
-  <audio ref="{{ audioRef }}" data-src="assets/song.mp3" loop="" preload="auto"></audio>
+  <audio ref="{{ audioRef }}" data-src="assets/song.mp3" loop="" preload="none"></audio>
   <button data-music-btn="1" onClick="{{ toggleMusic }}" aria-label="Toggle music" style="position:fixed; z-index:80; right:18px; bottom:18px; width:54px; height:54px; border-radius:50%; border:none; background:transparent; cursor:pointer; padding:0; box-shadow:0 8px 20px rgba(60,30,35,.35);">
     <span style="position:absolute; inset:-5px; border-radius:50%; border:1px solid rgba(206,102,131,.55); opacity:{{ musicRing }}; animation:an-glow 2.4s ease-in-out infinite; pointer-events:none;"></span>
     <span style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:repeating-radial-gradient(circle at 50% 50%, #151515 0 1px, #262626 1px 2px); box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); animation:an-spin 3.2s linear infinite; animation-play-state:{{ musicSpin }}; opacity:{{ musicDim }}; transition:opacity .4s ease; pointer-events:none;">
@@ -112,8 +115,8 @@
       
 
       <!-- peony flower corners -->
-      <img src="assets/peony.webp" alt="" style="position: absolute; top: -82px; left: 6px; width: 188px; z-index: 5; pointer-events: none; transform: scaleX(-1) rotate(-4deg); filter: drop-shadow(0 6px 14px rgba(30,40,90,.18))">
-      <img src="assets/peony.webp" alt="" style="position: absolute; top: -92px; right: 6px; width: 188px; z-index: 5; pointer-events: none; transform: rotate(-4deg); filter: drop-shadow(0 6px 14px rgba(30,40,90,.18))">
+      <img loading="lazy" decoding="async" src="assets/peony.webp" alt="" style="position: absolute; top: -82px; left: 6px; width: 188px; z-index: 5; pointer-events: none; transform: scaleX(-1) rotate(-4deg); filter: drop-shadow(0 6px 14px rgba(30,40,90,.18))">
+      <img loading="lazy" decoding="async" src="assets/peony.webp" alt="" style="position: absolute; top: -92px; right: 6px; width: 188px; z-index: 5; pointer-events: none; transform: rotate(-4deg); filter: drop-shadow(0 6px 14px rgba(30,40,90,.18))">
 
       <!-- AN monogram + tagline -->
       <div style="position: relative; z-index: 4; text-align: center; padding-top: 50px">
@@ -134,7 +137,7 @@
 
       <!-- kiss photo — opacity-fades into the blue sky at top and the cream at bottom -->
       <div style="position: relative; z-index: 2; margin-top: 30px; width: 100%; height: 550px; overflow: hidden; -webkit-mask: linear-gradient(180deg, transparent 0%, #000 21%, #000 100%); mask: linear-gradient(180deg, transparent 0%, #000 21%, #000 100%)">
-        <img data-parallax="0.1" src="assets/hands-holding.webp" alt="Nupur and Aditya" style="position: absolute; top: -50px; left: -5%; width: 110%; height: 116%; object-fit: cover; object-position: center 10%; will-change: transform">
+        <img fetchpriority="high" decoding="async" data-parallax="0.1" src="assets/hands-holding.webp" alt="Nupur and Aditya" style="position: absolute; top: -50px; left: -5%; width: 110%; height: 116%; object-fit: cover; object-position: center 10%; will-change: transform">
       </div>
 
       <!-- twinkling fairy lights along the sides of the photo -->
@@ -165,13 +168,13 @@
     <!-- ===================== INVITATION ===================== -->
     <section data-screen-label="Invitation" style="padding: 64px 34px 8px; text-align: center; padding-top: 180px; position: relative; overflow: hidden; height: 720px">
       <div data-parallax="0.06" style="position: absolute; top: -18px; left: -26px; width: 112px; z-index: 0; pointer-events: none; will-change: transform">
-        <img src="assets/lantern.webp" alt="" style="width:100%; height:auto; display:block; transform:scaleX(-1); transform-origin:top center; animation:an-sway2 7s ease-in-out infinite;">
+        <img loading="lazy" decoding="async" src="assets/lantern.webp" alt="" style="width:100%; height:auto; display:block; transform:scaleX(-1); transform-origin:top center; animation:an-sway2 7s ease-in-out infinite;">
       </div>
       <div data-parallax="0.06" style="position: absolute; top: -18px; right: -22px; width: 106px; z-index: 0; pointer-events: none; will-change: transform">
-        <img src="assets/lantern.webp" alt="" style="width:100%; height:auto; display:block; transform-origin:top center; animation:an-sway 6.4s ease-in-out infinite;">
+        <img loading="lazy" decoding="async" src="assets/lantern.webp" alt="" style="width:100%; height:auto; display:block; transform-origin:top center; animation:an-sway 6.4s ease-in-out infinite;">
       </div>
       <div data-reveal="" style="position: relative; z-index: 1; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: -60px">
-        <img src="assets/swans.png" alt="" aria-hidden="true" style="display:block; width:96px; height:auto; margin:0 auto 16px; filter:drop-shadow(0 6px 14px rgba(120,90,70,.18));">
+        <img loading="lazy" decoding="async" src="assets/swans.webp" alt="" aria-hidden="true" style="display:block; width:96px; height:auto; margin:0 auto 16px; filter:drop-shadow(0 6px 14px rgba(120,90,70,.18));">
         <div style="font-size:13px; letter-spacing:4px; text-transform:uppercase; color:#364ABF;">Together with our Families</div>
         <p style="margin:18px auto 0; max-width:300px; font-size:19px; line-height:1.5; font-style:italic; color:#6A6A6A; text-wrap:pretty;">we joyfully invite you to the wedding of</p>
 
@@ -207,10 +210,10 @@
     <!-- ===================== COUNTDOWN ===================== -->
     <section data-screen-label="Countdown" style="padding: 48px 24px 56px; text-align: center; padding-top: 60px; position: relative; overflow: hidden">
       <div aria-hidden="true" style="position:absolute; top:30px; left:14px; width:30px; z-index:3; pointer-events:none; will-change:transform; animation:an-fly1 19s ease-in-out infinite;">
-        <img src="assets/butterfly-1.png" alt="" style="width:100%; height:auto; display:block; transform-origin:center; animation:an-flap .24s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(120,90,70,.18));">
+        <img loading="lazy" decoding="async" src="assets/butterfly-1.png" alt="" style="width:100%; height:auto; display:block; transform-origin:center; animation:an-flap .24s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(120,90,70,.18));">
       </div>
       <div aria-hidden="true" style="position:absolute; top:18px; left:392px; width:27px; z-index:3; pointer-events:none; will-change:transform; animation:an-fly2 24s ease-in-out infinite;">
-        <img src="assets/butterfly-2.png" alt="" style="width:100%; height:auto; display:block; transform-origin:center; animation:an-flap .28s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(120,90,70,.18));">
+        <img loading="lazy" decoding="async" src="assets/butterfly-2.png" alt="" style="width:100%; height:auto; display:block; transform-origin:center; animation:an-flap .28s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(120,90,70,.18));">
       </div>
       <div data-reveal="" style="opacity:0; transform:translateY(26px); transition:opacity 1s ease, transform 1s ease;">
         <div style="font-size:15px; letter-spacing:4px; text-transform:uppercase; color:#364ABF;">Counting Days to Forever</div>
@@ -242,10 +245,10 @@
       <!-- ENGAGEMENT -->
       <div data-reveal="" style="position: relative; z-index: 1; margin-top: 60px; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: 0px">
         <div style="position: relative; width: 188px; margin: 0 auto">
-          <img src="assets/peony.webp" alt="" style="position: absolute; width: 252px; z-index: 0; pointer-events: none; top: -50px; transform-origin: 60% 80%; animation: an-wind1 5.6s ease-in-out infinite">
+          <img loading="lazy" decoding="async" src="assets/peony.webp" alt="" style="position: absolute; width: 252px; z-index: 0; pointer-events: none; top: -50px; transform-origin: 60% 80%; animation: an-wind1 5.6s ease-in-out infinite">
           
           <div style="position: relative; z-index: 1; width: 188px; height: 248px; border-radius: 999px 999px 14px 14px; overflow: hidden; box-shadow: 0 0 0 7px #FFFFFF, 0 8px 18px rgba(120,90,70,.14)">
-            <img id="img-engagement" src="assets/engagement.webp" alt="Engagement" style="width: 100%; height: 100%; object-fit: cover; display: block">
+            <img loading="lazy" decoding="async" id="img-engagement" src="assets/engagement.webp" alt="Engagement" style="width: 100%; height: 100%; object-fit: cover; display: block">
           </div>
         </div>
         <div style="font-family: 'Beau Rivage', cursive; font-size: 38px; color: #CE6683; line-height: 1; margin-top: 50px">Engagement</div>
@@ -262,16 +265,16 @@
             Get Directions
           </a>
         </div>
-      <img src="assets/peony.webp" alt="" style="position: absolute; left: -8px; width: 244px; z-index: 0; pointer-events: none; transform: scaleX(-1) rotate(6deg); top: -103px; transform-origin: 40% 80%; animation: an-wind2 6.8s ease-in-out infinite"></div>
+      <img loading="lazy" decoding="async" src="assets/peony.webp" alt="" style="position: absolute; left: -8px; width: 244px; z-index: 0; pointer-events: none; transform: scaleX(-1) rotate(6deg); top: -103px; transform-origin: 40% 80%; animation: an-wind2 6.8s ease-in-out infinite"></div>
 
       <!-- WEDDING (inside bougainvillea arch) -->
       <div data-reveal="" style="position: relative; z-index: 1; margin-top: 58px; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: -60px; margin-bottom: 60px">
         <div style="position:relative; width:304px; max-width:86%; margin:0 auto;">
           <div style="position:relative; width:100%; padding-top:177.8%;">
             <div style="position: absolute; left: 23.7%; top: 30.3%; width: 52.9%; height: 47.1%; border-radius: 999px 999px 10px 10px; overflow: hidden; z-index: 0; box-shadow: 0px 8px 22px 0px #e0e0e033">
-              <img id="img-wedding" src="assets/wedding-watercolor.webp" alt="Wedding" style="width: 100%; height: 102%; object-fit: cover; object-position: center 30%; display: block">
+              <img loading="lazy" decoding="async" id="img-wedding" src="assets/wedding-watercolor.webp" alt="Wedding" style="width: 100%; height: 102%; object-fit: cover; object-position: center 30%; display: block">
             </div>
-            <img src="assets/arch-bougainvillea.webp" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; pointer-events: none; bottom: 0px">
+            <img loading="lazy" decoding="async" src="assets/arch-bougainvillea.webp" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; pointer-events: none; bottom: 0px">
           </div>
         </div>
         <div style="font-family: 'Beau Rivage', cursive; font-size: 38px; color: #CE6683; line-height: 1; margin-top: -70px">Wedding</div>
@@ -308,7 +311,7 @@
 
       <!-- image first — torn-paper edge on BOTH top and bottom -->
       <div class="nb-u2" style="position: relative; width: 100%; height: 430px; overflow: hidden; top: -30px">
-        <img data-parallax="0.1" src="assets/hero-couple.webp" alt="" style="position: absolute; top: 10px; left: 0; width: 100%; height: 110%; object-fit: cover; object-position: center 28%; will-change: transform">
+        <img loading="lazy" decoding="async" data-parallax="0.1" src="assets/hero-couple.webp" alt="" style="position: absolute; top: 10px; left: 0; width: 100%; height: 110%; object-fit: cover; object-position: center 28%; will-change: transform">
       </div>
 
       <div data-reveal="" style="opacity:0; transform:translateY(26px); transition:opacity 1s ease, transform 1s ease; padding:34px 30px 8px;">
@@ -383,7 +386,7 @@ class Component extends DCLogic {
         boxShadow: '0 6px 16px rgba(120,90,70,.18)',
       },
     }, React.createElement('img', {
-      src, alt: '',
+      src, alt: '', decoding: 'async', width: 104, height: 104,
       style: { width: '100%', height: '100%', objectFit: 'cover' },
     }));
   }
@@ -507,7 +510,7 @@ class Component extends DCLogic {
     hero.onerror = hideLoader;
     hero.src = 'assets/hands-holding.webp';
     if (hero.complete) hideLoader();
-    this._loaderTimeout = setTimeout(hideLoader, 6000); // safety fallback
+    this._loaderTimeout = setTimeout(hideLoader, 2500); // safety fallback
 
     const root = this.rootRef.current;
     if (!root) return;
@@ -660,11 +663,11 @@ class Component extends DCLogic {
   renderVals() {
     if (!this._petals) this._petals = this.makePetals();
     const photos = [
-      'assets/rectangle.png', 'assets/rectangle-1.png', 'assets/rectangle-2.png', 'assets/rectangle-3.png',
-      'assets/rectangle-4.png', 'assets/rectangle-5.png', 'assets/rectangle-6.png', 'assets/rectangle-7.png',
-      'assets/rectangle-8.png', 'assets/rectangle-9.png', 'assets/rectangle-10.png', 'assets/rectangle-11.png',
-      'assets/rectangle-12.png', 'assets/rectangle-13.png', 'assets/rectangle-14.png',
-      'assets/image-16.png', 'assets/image-17.png', 'assets/image-26.png', 'assets/image-29.png', 'assets/image-31.png'
+      'assets/rectangle.webp', 'assets/rectangle-1.webp', 'assets/rectangle-2.webp', 'assets/rectangle-3.webp',
+      'assets/rectangle-4.webp', 'assets/rectangle-5.webp', 'assets/rectangle-6.webp', 'assets/rectangle-7.webp',
+      'assets/rectangle-8.webp', 'assets/rectangle-9.webp', 'assets/rectangle-10.webp', 'assets/rectangle-11.webp',
+      'assets/rectangle-12.webp', 'assets/rectangle-13.webp', 'assets/rectangle-14.webp',
+      'assets/image-16.webp', 'assets/image-17.webp', 'assets/image-26.webp', 'assets/image-29.webp', 'assets/image-31.webp'
     ];
     const half = Math.ceil(photos.length / 2);
     const photosA = photos.slice(0, half);
