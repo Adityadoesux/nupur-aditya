@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#EFE2D8">
 <link rel="icon" type="image/png" href="assets/an-monogram.png">
-<link rel="preload" as="image" href="assets/hero-frames.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/hero-frames-hd.webp" fetchpriority="high">
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/cormorant-garamond-latin-400-normal.woff2" crossorigin>
 <script src="assets/react.production.min.js"></script>
 <script src="assets/react-dom.production.min.js"></script>
@@ -109,7 +109,7 @@
   <div ref="{{ cardRef }}" style="position:relative; width:100%; max-width:430px; background:#FEF7F1; overflow:hidden; box-shadow:0 0 90px rgba(120,90,70,.28);">
 
     <!-- ===================== HERO ===================== -->
-    <section data-screen-label="Hero" style="position: relative; overflow: hidden; padding-bottom: 84px; background: linear-gradient(180deg, #F8F0E5 0%, #F8F0E5 55%, #FEF7F1 82%, #FEF7F1 100%); height: 750px">
+    <section data-screen-label="Hero" style="position: relative; z-index: 2; overflow: hidden; padding-bottom: 84px; background: linear-gradient(180deg, #F8F0E5 0%, #F8F0E5 55%, #FEF7F1 76%, rgba(254,247,241,0) 84%); height: 750px">
 
       <!-- drifting sky haze -->
       
@@ -131,9 +131,9 @@
           <span class="nb-u1" aria-hidden="true" style="position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg, transparent 43%, rgba(255,255,255,.92) 50%, transparent 57%); background-size:260% 100%; background-repeat:no-repeat; mix-blend-mode:screen; animation:an-glint 5.5s ease-in-out infinite;"></span>
         </span>
         <div style="margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 12px">
-          <span style="height:1px; width:40px; background:rgba(196,154,72,.7);"></span>
-          <span style="font-size:12px; letter-spacing:4px; text-transform:uppercase; color:#B08534; font-weight:600;">We're getting married</span>
-          <span style="height:1px; width:40px; background:rgba(196,154,72,.7);"></span>
+          <span style="height:1px; width:32px; flex-shrink:1; min-width:14px; background:rgba(196,154,72,.7);"></span>
+          <span style="font-size:15px; letter-spacing:3.5px; text-transform:uppercase; color:#B08534; font-weight:600; white-space:nowrap;">We're getting married</span>
+          <span style="height:1px; width:32px; flex-shrink:1; min-width:14px; background:rgba(196,154,72,.7);"></span>
         </div>
       </div>
 
@@ -142,8 +142,8 @@
       
 
       <!-- kiss photo — opacity-fades into the blue sky at top and the cream at bottom -->
-      <div class="nb-u2" style="position: relative; z-index: 2; margin-top: -52px; width: 100%; height: 550px; overflow: hidden;">
-        <img fetchpriority="high" decoding="async" data-parallax="0.1" src="assets/hero-frames.webp" alt="Nupur and Aditya" style="position: absolute; top: 34px; left: -5%; width: 110%; height: 116%; object-fit: cover; object-position: center 18%; will-change: transform">
+      <div class="nb-u2" style="position: relative; z-index: 2; margin-top: -96px; width: 100%; height: 600px; overflow: hidden;">
+        <img fetchpriority="high" decoding="async" data-parallax="0.1" src="assets/hero-frames-hd.webp" alt="Nupur and Aditya" style="position: absolute; bottom: -6px; left: -15%; width: 130%; height: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%); mask-image: linear-gradient(180deg, transparent 0%, #000 22%); will-change: transform">
         <!-- soften the leafy greens at the top-left and edges into the cream paper -->
         <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 75% 55% at 0% 8%, rgba(248,240,229,.96) 0%, rgba(248,240,229,.78) 38%, rgba(248,240,229,0) 72%), radial-gradient(ellipse 45% 45% at 100% 12%, rgba(248,240,229,.75) 0%, rgba(248,240,229,0) 70%), linear-gradient(90deg, rgba(248,240,229,.7) 0%, rgba(248,240,229,0) 26%), linear-gradient(180deg, rgba(248,240,229,.85) 0%, rgba(248,240,229,0) 30%);"></div>
       </div>
@@ -168,7 +168,7 @@
     </section>
 
     <!-- ===================== INVITATION ===================== -->
-    <section data-screen-label="Invitation" style="padding: 64px 34px 8px; text-align: center; padding-top: 180px; position: relative; overflow: hidden; height: 920px">
+    <section data-screen-label="Invitation" style="padding: 64px 34px 8px; text-align: center; padding-top: 214px; margin-top: -70px; position: relative; overflow: hidden; height: 954px">
       <div data-parallax="0.06" style="position: absolute; top: -18px; left: -26px; width: 112px; z-index: 0; pointer-events: none; will-change: transform">
         <img fetchpriority="low" decoding="async" src="assets/lantern.webp" alt="" style="width:100%; height:auto; display:block; transform:scaleX(-1); transform-origin:top center; animation:an-sway2 7s ease-in-out infinite;">
       </div>
@@ -195,7 +195,7 @@
         <!-- GROOM -->
         <div>
           <h2 style="margin: 0; font-family: 'Beau Rivage', cursive; font-weight: 500; font-size: 56px; letter-spacing: 2px; color: #CE6683; line-height: 1.05">Aditya</h2>
-          <div style="margin-top:8px; font-size:clamp(12px, 3.5vw, 14px); color:#464646; line-height:1.45; white-space:nowrap;">Son of Vinita Agarwal &amp; Girdhar Gopal Agarwal</div>
+          <div style="margin-top:8px; font-size:clamp(13px, 3.9vw, 15.5px); color:#464646; line-height:1.45; white-space:nowrap;">Son of <span style="font-weight:600;">Vinita Agarwal</span> &amp; <span style="font-weight:600;">Girdhar Gopal Agarwal</span></div>
         </div>
 
         <p style="margin:42px auto 0; max-width:300px; font-size:19px; line-height:1.45; font-style:italic; color:#6A6A6A; text-wrap:pretty;">as they embark on this exciting journey together</p>
@@ -215,7 +215,7 @@
     </section>
 
     <!-- ===================== COUNTDOWN ===================== -->
-    <section data-screen-label="Countdown" style="padding: 48px 24px 56px; text-align: center; padding-top: 60px; position: relative; overflow: hidden">
+    <section data-screen-label="Countdown" style="padding: 48px 24px 40px; text-align: center; padding-top: 44px; position: relative; overflow: hidden">
       <div aria-hidden="true" style="position:absolute; top:30px; left:14px; width:30px; z-index:3; pointer-events:none; will-change:transform; animation:an-fly1 19s ease-in-out infinite;">
         <img fetchpriority="low" decoding="async" src="assets/butterfly-1.png" alt="" style="width:100%; height:auto; display:block; transform-origin:center; animation:an-flap .24s ease-in-out infinite; filter:drop-shadow(0 4px 6px rgba(120,90,70,.18));">
       </div>
@@ -263,12 +263,12 @@
         <div style="margin:18px auto 0; display:flex; flex-direction:column; align-items:center; gap:12px; max-width:280px;">
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="height:1px; width:24px; background:#CE6683; opacity:.45;"></span>
-            <span style="font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:#9A8A86;">Six Thirty in the Evening</span>
+            <span style="font-size:14px; letter-spacing:2.5px; text-transform:uppercase; color:#CE6683; font-weight:600; white-space:nowrap;">7:00 PM onwards</span>
             <span style="height:1px; width:24px; background:#CE6683; opacity:.45;"></span>
           </div>
-          <div style="font-size:17px; color:#3A3A3A; line-height:1.45; text-wrap:pretty;">Silver Oak Hall<br>Gate 3, India Habitat Centre<br><span style="font-size: 14px; color: rgb(124, 112, 104);">New Delhi</span></div>
-          <a href="https://www.google.com/maps/place/India+Habitat+Centre+Gate+No.3/@28.5883962,77.2245942,18z/data=!3m1!4b1!4m6!3m5!1s0x390ce3004ba60b8d:0xa99d42f7db832edb!8m2!3d28.5883949!4d77.225309!16s%2Fg%2F11wqk5sng9?entry=tts&amp;g_ep=EgoyMDI2MDYyNC4wIPu8ASoASAFQAw%3D%3D" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:8px 18px; border:1px solid rgba(54,74,191,.4); border-radius:999px; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:#364ABF; text-decoration:none; cursor:pointer;" style-hover="background:rgba(54,74,191,.06);">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
+          <div style="font-size:17px; color:#3A3A3A; line-height:1.45; text-wrap:pretty;">Silver Oak Hall<br>Gate 3, India Habitat Centre<br>New Delhi</div>
+          <a href="https://www.google.com/maps/place/India+Habitat+Centre+Gate+No.3/@28.5883962,77.2245942,18z/data=!3m1!4b1!4m6!3m5!1s0x390ce3004ba60b8d:0xa99d42f7db832edb!8m2!3d28.5883949!4d77.225309!16s%2Fg%2F11wqk5sng9?entry=tts&amp;g_ep=EgoyMDI2MDYyNC4wIPu8ASoASAFQAw%3D%3D" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:10px 22px; border:1px solid rgba(54,74,191,.4); border-radius:999px; font-size:13.5px; letter-spacing:1.5px; text-transform:uppercase; color:#364ABF; text-decoration:none; cursor:pointer;" style-hover="background:rgba(54,74,191,.06);">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
             Get Directions
           </a>
         </div>
@@ -287,7 +287,7 @@
         <div style="font-family: 'Beau Rivage', cursive; font-size: 38px; color: #CE6683; line-height: 1; margin-top: -70px">Wedding</div>
         {{ dateWedding }}
         <div style="margin:18px auto 0; display:flex; flex-direction:column; align-items:center; gap:14px; max-width:280px;">
-          <div style="display:flex; flex-direction:column; align-items:center; gap:6px; font-size:17px; color:#3A3A3A; line-height:1.3; text-wrap:pretty;"><span style="font-weight:600;">Monument Lawn</span><span>Jhankar Banquets &amp; Lawns</span><span style="font-size:15px; color:#7C7068;">Khel Gaon Marg, New Delhi</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:6px; font-size:17px; color:#3A3A3A; line-height:1.3; text-wrap:pretty;"><span style="font-weight:600;">Monument Lawn</span><span>Jhankar Banquets &amp; Lawns</span><span>Khel Gaon Marg, New Delhi</span></div>
           <!-- ceremony schedule -->
           <div style="margin-top: 6px; margin-bottom: 10px; width: 100%; max-width: 280px; padding: 12px 0; border-top: 1px solid rgba(206,102,131,.3); border-bottom: 1px solid rgba(206,102,131,.3); display: flex; flex-direction: column; gap: 9px;">
             <div style="display: grid; grid-template-columns: 84px 1fr; column-gap: 16px; align-items: baseline;">
@@ -307,8 +307,8 @@
               <span style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #3A3A3A; text-align: left;">Vidai</span>
             </div>
           </div>
-          <a href="https://maps.app.goo.gl/xeRJuPQBKvUG1V3o8" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 8px 18px; border: 1px solid rgba(54,74,191,.4); border-radius: 999px; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; text-decoration: none; cursor: pointer; padding-top: 8px" style-hover="background:rgba(54,74,191,.06);">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
+          <a href="https://maps.app.goo.gl/xeRJuPQBKvUG1V3o8" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 10px 22px; border: 1px solid rgba(54,74,191,.4); border-radius: 999px; font-size: 13.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; text-decoration: none; cursor: pointer; padding-top: 10px" style-hover="background:rgba(54,74,191,.06);">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
             Get Directions
           </a>
         </div>
@@ -523,7 +523,7 @@ class Component extends DCLogic {
     const hero = new Image();
     hero.onload = hideLoader;
     hero.onerror = hideLoader;
-    hero.src = 'assets/hero-frames.webp';
+    hero.src = 'assets/hero-frames-hd.webp';
     if (hero.complete) hideLoader();
     this._loaderTimeout = setTimeout(hideLoader, 2500); // safety fallback
 
@@ -668,11 +668,11 @@ class Component extends DCLogic {
     const e = React.createElement;
     // small uppercase serif label (month / year), stacked beside the numeral
     const side = (t) => e('span', {
-      style: { fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, fontSize: '15px', letterSpacing: '4px', textTransform: 'uppercase', color: pink, lineHeight: 1 },
+      style: { fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, fontSize: '20px', letterSpacing: '3.5px', textTransform: 'uppercase', color: pink, lineHeight: 1 },
     }, t);
     // thin vertical rule divider
     const rule = () => e('span', {
-      style: { width: '1px', height: '30px', background: pink, opacity: .4 },
+      style: { width: '1px', height: '36px', background: pink, opacity: .4 },
     });
     // large elegant serif numeral
     const numeral = e('span', {
