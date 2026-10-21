@@ -73,7 +73,8 @@ html:not([data-order="groom"]) .v-g, html[data-order="groom"] .v-b,
 html[data-events="wedding"] .v-eng, html[data-events="wedding"] .v-both,
 html:not([data-events="wedding"]) .v-w { display: none !important; }
 html[data-order="groom"] section[data-screen-label="Invitation"] { height: 895px !important; }
-html[data-photos] section[data-screen-label="Invitation"] { height: 935px !important; }
+html[data-photos][data-order="groom"] section[data-screen-label="Invitation"] { height: 935px !important; }
+html[data-photos]:not([data-order="groom"]) section[data-screen-label="Invitation"] { height: 842px !important; }
 html[data-photos] section[data-screen-label="Countdown"] { padding-bottom: 12px !important; }
 html[data-photos] section[data-screen-label="Gallery"] { padding-top: 40px !important; }
 html[data-photos] .v-nophoto { display: none !important; }
@@ -282,7 +283,7 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
     <!-- ===================== PHOTO MARQUEE ===================== -->
     <section data-screen-label="Gallery" style="padding:44px 0 8px; overflow:hidden;">
       <div data-reveal="" style="opacity:0; transition:opacity 1.1s ease;">
-        <div class="v-g">
+        <div>
         <div style="display: flex; gap: 12px; width: max-content; animation: an-marqL 60s linear infinite; padding: 0 6px">{{ rowA }}</div>
         <div style="display: flex; gap: 12px; width: max-content; animation: an-marqR 55s linear infinite; padding: 12px 6px 0">{{ rowB }}</div>
         </div>
