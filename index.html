@@ -66,6 +66,13 @@
     75%{ transform:translate(-36px,38px) rotate(-6deg); }
     100%{ transform:translate(0,0) rotate(7deg); }
   }
+
+/* ---- invite variants: <html data-order="groom"> and/or <html data-events="wedding"> ---- */
+html:not([data-order="groom"]) .v-g, html[data-order="groom"] .v-b,
+html[data-events="wedding"] .v-eng, html[data-events="wedding"] .v-both,
+html:not([data-events="wedding"]) .v-w { display: none !important; }
+html[data-order="groom"] section[data-screen-label="Invitation"] { height: 1090px !important; }
+html[data-events="wedding"] .v-wedblk { margin-top: -40px !important; }
 </style>
 <style>
 .nb-u0{-webkit-mask:url(assets/an-monogram.png) center/contain no-repeat !important;mask:url(assets/an-monogram.png) center/contain no-repeat !important}
@@ -177,6 +184,7 @@
       </div>
       <div data-reveal="" style="position: relative; z-index: 1; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: -60px">
         <img fetchpriority="low" decoding="async" src="assets/swans.webp" alt="" aria-hidden="true" style="display:block; width:96px; height:auto; margin:0 auto 16px; filter:drop-shadow(0 6px 14px rgba(120,90,70,.18));">
+<div class="v-b">
         <div style="font-size:20px; font-weight:600; color:#464646; line-height:1.4;">Punam Nayyar &amp; Sumit Bhatnagar</div>
         <p style="margin:6px auto 0; max-width:300px; font-size:19px; line-height:1.45; font-style:italic; color:#6A6A6A; text-wrap:pretty;">joyfully invite you to the wedding celebration of their daughter</p>
 
@@ -197,6 +205,31 @@
           <h2 style="margin: 0; font-family: 'Beau Rivage', cursive; font-weight: 500; font-size: 56px; letter-spacing: 2px; color: #CE6683; line-height: 1.05">Aditya</h2>
           <div style="margin-top:8px; font-size:clamp(13px, 3.9vw, 15.5px); color:#464646; line-height:1.45; white-space:nowrap;">Son of <span style="font-weight:600;">Vinita Agarwal</span> &amp; <span style="font-weight:600;">Girdhar Gopal Agarwal</span></div>
         </div>
+        </div>
+        <div class="v-g">
+        <div style="font-size:16px; font-style:italic; color:#6A6A6A;">with the blessing of</div>
+        <div style="margin-top:4px; font-size:clamp(14px, 4.2vw, 16px); color:#5A5A5A; line-height:1.5; text-wrap:balance;">Late Smt. Swaraj Devi &amp; Krishan Swarop Agarwal<br>Late Smt. Padmavati &amp; Madhav Ram Goel</div>
+        <div style="margin-top:28px; font-size:clamp(17px, 5vw, 20px); font-weight:600; color:#464646; line-height:1.4;">Vinita Agarwal &amp; Girdhar Gopal Agarwal</div>
+        <p style="margin:6px auto 0; max-width:320px; font-size:19px; line-height:1.45; font-style:italic; color:#6A6A6A; text-wrap:pretty;">solicit your gracious presence on the joyous occasion of the wedding celebrations of their son</p>
+
+        <!-- GROOM (first) -->
+        <div style="margin-top:42px;">
+          <h2 style="margin: 0; font-family: 'Beau Rivage', cursive; font-weight: 500; font-size: 56px; letter-spacing: 2px; color: #CE6683; line-height: 1.05">Aditya</h2>
+        </div>
+
+        <!-- with -->
+        <div style="margin:14px auto; display:flex; align-items:center; justify-content:center; gap:14px; max-width:230px;">
+          <span style="flex:1; height:1px; background:linear-gradient(to right, transparent, #CE6683);"></span>
+          <span style="font-family:'Cormorant Garamond', serif; font-style:italic; font-size:20px; color:#CE6683;">with</span>
+          <span style="flex:1; height:1px; background:linear-gradient(to left, transparent, #CE6683);"></span>
+        </div>
+
+        <!-- BRIDE (second) -->
+        <div>
+          <h2 style="margin: 0; font-family: 'Beau Rivage', cursive; font-weight: 500; font-size: 56px; letter-spacing: 2px; color: #CE6683; line-height: 1.05">Nupur</h2>
+          <div style="margin-top:8px; font-size:clamp(13px, 3.9vw, 15.5px); color:#464646; line-height:1.45; white-space:nowrap;">Daughter of <span style="font-weight:600;">Punam Nayyar</span> &amp; <span style="font-weight:600;">Sumit Bhatnagar</span></div>
+        </div>
+        </div>
 
         <p style="margin:42px auto 0; max-width:300px; font-size:19px; line-height:1.45; font-style:italic; color:#6A6A6A; text-wrap:pretty;">as they embark on this exciting journey together</p>
 
@@ -209,7 +242,7 @@
         <!-- sharing the joy -->
         <div style="margin-top:44px;">
           <div style="font-size:13px; letter-spacing:4px; text-transform:uppercase; color:#364ABF;">Sharing the Joy with</div>
-          <div style="margin:8px auto 0; max-width:300px; font-size:17px; color:#464646; line-height:1.5; text-wrap:balance;">Aashi Bhatnagar, Uma Bhatnagar, Prem Lata &amp; S.S. Nayyar</div>
+          <div style="margin:8px auto 0; max-width:300px; font-size:17px; color:#464646; line-height:1.5; text-wrap:balance;"><span class="v-b">Aashi Bhatnagar, Uma Bhatnagar, Prem Lata &amp; S.S. Nayyar</span><span class="v-g">Isha Aggarwall, Priyanka Agarwal, Vipul Agarwal, Anant Agarwal</span></div>
         </div>
       </div>
     </section>
@@ -245,12 +278,12 @@
     <section data-screen-label="Save the Dates" style="position: relative; padding: 62px 28px 8px; text-align: center; overflow: hidden; top: 100px; padding-top: 20px; padding-bottom: 40px">
 
       <div data-reveal="" style="position:relative; z-index:1; opacity:0; transform:translateY(26px); transition:opacity 1s ease, transform 1s ease;">
-        <div style="font-family: 'Beau Rivage', cursive; font-size: 48px; color: #CE6683; line-height: 1; margin-top: 0px; margin-bottom: 4px">Save the Dates</div><div style="font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #364ABF">TWO DAYS OF CELEBRATIONS</div>
+        <div style="font-family: 'Beau Rivage', cursive; font-size: 48px; color: #CE6683; line-height: 1; margin-top: 0px; margin-bottom: 4px">Save the Date<span class="v-both">s</span></div><div style="font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #364ABF"><span class="v-both">TWO DAYS OF CELEBRATIONS</span><span class="v-w">JOIN US AS WE TIE THE KNOT</span></div>
         
       </div>
 
       <!-- ENGAGEMENT -->
-      <div data-reveal="" style="position: relative; z-index: 1; margin-top: 60px; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: 0px">
+      <div class="v-eng" data-reveal="" style="position: relative; z-index: 1; margin-top: 60px; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: 0px">
         <div style="position: relative; width: 188px; margin: 0 auto">
           <img fetchpriority="low" decoding="async" src="assets/peony.webp" alt="" style="position: absolute; width: 252px; z-index: 0; pointer-events: none; top: -50px; transform-origin: 60% 80%; animation: an-wind1 5.6s ease-in-out infinite">
           
@@ -263,11 +296,11 @@
         <div style="margin:18px auto 0; display:flex; flex-direction:column; align-items:center; gap:12px; max-width:280px;">
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="height:1px; width:24px; background:#CE6683; opacity:.45;"></span>
-            <span style="font-size:14px; letter-spacing:2.5px; text-transform:uppercase; color:#CE6683; font-weight:600; white-space:nowrap;">7:00 PM onwards</span>
+            <span style="font-family:'Cormorant Garamond', serif; font-size:18px; color:#CE6683; font-weight:600; white-space:nowrap;">7:00 PM onwards</span>
             <span style="height:1px; width:24px; background:#CE6683; opacity:.45;"></span>
           </div>
           <div style="font-size:17px; color:#3A3A3A; line-height:1.45; text-wrap:pretty;">Silver Oak Hall<br>Gate 3, India Habitat Centre<br>New Delhi</div>
-          <a href="https://www.google.com/maps/place/India+Habitat+Centre+Gate+No.3/@28.5883962,77.2245942,18z/data=!3m1!4b1!4m6!3m5!1s0x390ce3004ba60b8d:0xa99d42f7db832edb!8m2!3d28.5883949!4d77.225309!16s%2Fg%2F11wqk5sng9?entry=tts&amp;g_ep=EgoyMDI2MDYyNC4wIPu8ASoASAFQAw%3D%3D" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:10px 22px; border:1px solid rgba(54,74,191,.4); border-radius:999px; font-size:13.5px; letter-spacing:1.5px; text-transform:uppercase; color:#364ABF; text-decoration:none; cursor:pointer;" style-hover="background:rgba(54,74,191,.06);">
+          <a href="https://www.google.com/maps/place/India+Habitat+Centre+Gate+No.3/@28.5883962,77.2245942,18z/data=!3m1!4b1!4m6!3m5!1s0x390ce3004ba60b8d:0xa99d42f7db832edb!8m2!3d28.5883949!4d77.225309!16s%2Fg%2F11wqk5sng9?entry=tts&amp;g_ep=EgoyMDI2MDYyNC4wIPu8ASoASAFQAw%3D%3D" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:10px 22px; border:1px solid rgba(54,74,191,.4); border-radius:999px; font-size:13.5px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#364ABF; text-decoration:none; cursor:pointer;" style-hover="background:rgba(54,74,191,.06);">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
             Get Directions
           </a>
@@ -275,7 +308,7 @@
       <img fetchpriority="low" decoding="async" src="assets/peony.webp" alt="" style="position: absolute; left: -8px; width: 244px; z-index: 0; pointer-events: none; transform: scaleX(-1) rotate(6deg); top: -103px; transform-origin: 40% 80%; animation: an-wind2 6.8s ease-in-out infinite"></div>
 
       <!-- WEDDING (inside bougainvillea arch) -->
-      <div data-reveal="" style="position: relative; z-index: 1; margin-top: 58px; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: -60px; margin-bottom: 60px">
+      <div class="v-wedblk" data-reveal="" style="position: relative; z-index: 1; margin-top: 58px; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: -60px; margin-bottom: 60px">
         <div style="position:relative; width:304px; max-width:86%; margin:0 auto;">
           <div style="position:relative; width:100%; padding-top:177.8%;">
             <div style="position: absolute; left: 23.7%; top: 30.3%; width: 52.9%; height: 47.1%; border-radius: 999px 999px 10px 10px; overflow: hidden; z-index: 0; box-shadow: 0px 8px 22px 0px #e0e0e033">
@@ -307,7 +340,7 @@
               <span style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #3A3A3A; text-align: left;">Vidai</span>
             </div>
           </div>
-          <a href="https://maps.app.goo.gl/xeRJuPQBKvUG1V3o8" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 10px 22px; border: 1px solid rgba(54,74,191,.4); border-radius: 999px; font-size: 13.5px; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; text-decoration: none; cursor: pointer; padding-top: 10px" style-hover="background:rgba(54,74,191,.06);">
+          <a href="https://maps.app.goo.gl/xeRJuPQBKvUG1V3o8" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 10px 22px; border: 1px solid rgba(54,74,191,.4); border-radius: 999px; font-size: 13.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; text-decoration: none; cursor: pointer; padding-top: 10px" style-hover="background:rgba(54,74,191,.06);">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
             Get Directions
           </a>
