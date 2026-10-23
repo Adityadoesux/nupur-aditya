@@ -71,7 +71,7 @@
 html:not([data-order="groom"]) .v-g, html[data-order="groom"] .v-b,
 html[data-events="wedding"] .v-eng, html[data-events="wedding"] .v-both,
 html:not([data-events="wedding"]) .v-w { display: none !important; }
-html[data-order="groom"] section[data-screen-label="Invitation"] { height: 1008px !important; }
+html[data-order="groom"] section[data-screen-label="Invitation"] { height: 1004px !important; }
 html[data-photos][data-order="groom"] section[data-screen-label="Invitation"] { height: 935px !important; }
 html[data-photos]:not([data-order="groom"]) section[data-screen-label="Invitation"] { height: 842px !important; }
 html[data-photos] section[data-screen-label="Countdown"] { padding-bottom: 12px !important; }
@@ -79,6 +79,7 @@ html[data-photos] section[data-screen-label="Gallery"] { padding-top: 40px !impo
 html[data-photos] .v-nophoto { display: none !important; }
 html[data-order="groom"]:not([data-photos]) .v-gpar { margin-top: 0 !important; }
 html[data-order="groom"]:not([data-photos]) .v-ggp { font-weight: 500; }
+@media (max-width: 345px) { .v-gpn { font-size: 10.4px !important; } }
 html[data-order="groom"]:not([data-photos]) .v-greq { line-height: 1.3 !important; }
 html[data-order="groom"]:not([data-photos]) section[data-screen-label="Invitation"] { padding-top: 195px !important; }
 .v-an { display: none !important; }
@@ -233,7 +234,7 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
         <div class="v-g">
         <div class="v-nophoto" aria-hidden="true" style="display:flex; align-items:center; justify-content:center; gap:10px; margin:30px 0 26px;"><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span><span style="width:5px; height:5px; transform:rotate(45deg); background:#D9A441; opacity:.75;"></span><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span></div>
         <div style="font-size:16px; font-style:italic; color:#6A6A6A;"><span class="v-nophoto" style="color:#5F5552; font-size:17.5px;">With the blessings of our beloved parents</span><span class="v-photo">with the blessing of</span></div>
-        <div class="v-ggp" style="margin-top:4px; font-size:clamp(14px, 4.2vw, 16px); color:#5A5A5A; line-height:1.5; text-wrap:balance;"><span class="v-photo">Late Smt. Swaraj Devi &amp; Krishan Swarop Agarwal<br>Late Smt. Padmavati &amp; Madhav Ram Goel</span><span class="v-nophoto" style="display:block; white-space:nowrap; font-size:clamp(10.5px, 3.3vw, 14px); line-height:1.75;">Late Smt. Swaraj Devi &amp; Late Sh. Krishan Swarop Agarwal<br>Late Smt. Padmavati &amp; Late Sh. Madhav Ram Goel</span></div>
+        <div class="v-ggp" style="margin-top:4px; font-size:clamp(14px, 4.2vw, 16px); color:#5A5A5A; line-height:1.5; text-wrap:balance;"><span class="v-photo">Late Smt. Swaraj Devi &amp; Krishan Swarop Agarwal<br>Late Smt. Padmavati &amp; Madhav Ram Goel</span><span class="v-nophoto v-gpn" style="display:block; white-space:nowrap; font-size:clamp(11px, calc(3.3vw + 1px), 15px); letter-spacing:-0.1px; line-height:1.45;">Late Smt. Swaraj Devi &amp; Late Sh. Krishan Swarop Agarwal<br>Late Smt. Padmavati &amp; Late Sh. Madhav Ram Goel</span></div>
         <div class="v-nophoto" aria-hidden="true" style="display:flex; align-items:center; justify-content:center; gap:10px; margin:26px 0 26px;"><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span><span style="width:5px; height:5px; transform:rotate(45deg); background:#D9A441; opacity:.75;"></span><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span></div>
         <div class="v-gpar" style="margin-top:28px; font-size:clamp(15px, 4.4vw, 17px); font-weight:600; color:#464646; line-height:1.4;">Vinita Agarwal &amp; Girdhar Gopal Agarwal</div>
         <p class="v-greq" style="margin:6px auto 0; max-width:340px; font-size:clamp(15.5px, 4.6vw, 19px); line-height:1.45; font-style:italic; color:#6A6A6A;">request your gracious presence on the joyous occasion of <span style="white-space:nowrap;">the wedding celebrations of their son</span></p>
