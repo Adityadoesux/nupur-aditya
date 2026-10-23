@@ -71,12 +71,17 @@
 html:not([data-order="groom"]) .v-g, html[data-order="groom"] .v-b,
 html[data-events="wedding"] .v-eng, html[data-events="wedding"] .v-both,
 html:not([data-events="wedding"]) .v-w { display: none !important; }
-html[data-order="groom"] section[data-screen-label="Invitation"] { height: 895px !important; }
+html[data-order="groom"] section[data-screen-label="Invitation"] { height: 1035px !important; }
 html[data-photos][data-order="groom"] section[data-screen-label="Invitation"] { height: 935px !important; }
 html[data-photos]:not([data-order="groom"]) section[data-screen-label="Invitation"] { height: 842px !important; }
 html[data-photos] section[data-screen-label="Countdown"] { padding-bottom: 12px !important; }
 html[data-photos] section[data-screen-label="Gallery"] { padding-top: 40px !important; }
 html[data-photos] .v-nophoto { display: none !important; }
+html[data-order="groom"]:not([data-photos]) .v-gpar { margin-top: 0 !important; }
+.v-an { display: none !important; }
+html[data-order="groom"]:not([data-photos]) .v-an { display: flex !important; }
+html[data-order="groom"]:not([data-photos]) .v-an-old { display: none !important; }
+html:not([data-photos]) .v-photo { display: none !important; }
 html:not([data-order="groom"]) section[data-screen-label="Invitation"] { height: 802px !important; }
 section[data-screen-label="Countdown"] { padding-top: 8px !important; }
 html[data-events="wedding"] .v-wedblk { margin-top: -40px !important; }
@@ -199,6 +204,7 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
       </div>
       <div data-reveal="" style="position: relative; z-index: 1; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease; top: -60px">
         <img fetchpriority="low" decoding="async" src="assets/ganesh.png" alt="" aria-hidden="true" style="display:block; width:34px; height:auto; margin:0 auto 16px;">
+        <div class="v-g v-nophoto" lang="sa" style="margin:0 auto 0; font-family:'Yatra One', 'Noto Sans Devanagari', sans-serif; font-size:14.5px; line-height:1.7; color:#D2A24E;">वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ ।<br>निर्विघ्नं कुरु मे देव सर्वकार्येषु सर्वदा ॥</div>
 <div class="v-b">
         <div style="font-size:20px; font-weight:600; color:#464646; line-height:1.4;">Punam Nayyar &amp; Sumit Bhatnagar</div>
         <p style="margin:6px auto 0; max-width:300px; font-size:19px; line-height:1.45; font-style:italic; color:#6A6A6A; text-wrap:pretty;">joyfully invite you to the wedding celebration of their daughter</p>
@@ -222,9 +228,11 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
         </div>
         </div>
         <div class="v-g">
-        <div style="font-size:16px; font-style:italic; color:#6A6A6A;">with the blessing of</div>
-        <div style="margin-top:4px; font-size:clamp(14px, 4.2vw, 16px); color:#5A5A5A; line-height:1.5; text-wrap:balance;">Late Smt. Swaraj Devi &amp; Krishan Swarop Agarwal<br>Late Smt. Padmavati &amp; Madhav Ram Goel</div>
-        <div style="margin-top:28px; font-size:clamp(15px, 4.4vw, 17px); font-weight:600; color:#464646; line-height:1.4;">Vinita Agarwal &amp; Girdhar Gopal Agarwal</div>
+        <div class="v-nophoto" aria-hidden="true" style="display:flex; align-items:center; justify-content:center; gap:10px; margin:30px 0 26px;"><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span><span style="width:5px; height:5px; transform:rotate(45deg); background:#D9A441; opacity:.75;"></span><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span></div>
+        <div style="font-size:16px; font-style:italic; color:#6A6A6A;"><span class="v-nophoto" style="color:#7A6F6B;">With the blessings of our beloved parents</span><span class="v-photo">with the blessing of</span></div>
+        <div style="margin-top:4px; font-size:clamp(14px, 4.2vw, 16px); color:#5A5A5A; line-height:1.5; text-wrap:balance;">Late Smt. Swaraj Devi &amp; Krishan Swarop Agarwal<br><span class="v-nophoto">&amp; </span>Late Smt. Padmavati &amp; Madhav Ram Goel</div>
+        <div class="v-nophoto" aria-hidden="true" style="display:flex; align-items:center; justify-content:center; gap:10px; margin:26px 0 26px;"><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span><span style="width:5px; height:5px; transform:rotate(45deg); background:#D9A441; opacity:.75;"></span><span style="height:1px; width:40px; background:#D9A441; opacity:.6;"></span></div>
+        <div class="v-gpar" style="margin-top:28px; font-size:clamp(15px, 4.4vw, 17px); font-weight:600; color:#464646; line-height:1.4;">Vinita Agarwal &amp; Girdhar Gopal Agarwal</div>
         <p style="margin:6px auto 0; max-width:340px; font-size:clamp(15.5px, 4.6vw, 19px); line-height:1.45; font-style:italic; color:#6A6A6A;">request your gracious presence on the joyous occasion of <span style="white-space:nowrap;">the wedding celebrations of their son</span></p>
 
         <!-- GROOM (first) -->
@@ -250,7 +258,7 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
 
         <!-- sharing the joy -->
         <div style="margin-top:44px;">
-          <div style="font-size:13px; letter-spacing:4px; text-transform:uppercase; color:#CE6683;">Sharing the Joy with</div>
+          <div class="v-an-old" style="font-size:13px; letter-spacing:4px; text-transform:uppercase; color:#CE6683;">Sharing the Joy with</div><div class="v-an" style="align-items:center; justify-content:center; gap:10px;"><span style="height:1px; width:26px; background:#CE6683; opacity:.55;"></span><span style="font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#CE6683; font-weight:600;">Sharing the Joy with</span><span style="height:1px; width:26px; background:#CE6683; opacity:.55;"></span></div>
           <div style="margin:8px auto 0; max-width:300px; font-size:17px; color:#464646; line-height:1.5; text-wrap:balance;"><span class="v-b">Aashi Bhatnagar, Uma Bhatnagar, Prem Lata &amp; S.S. Nayyar</span><span class="v-g">Isha Aggarwall, Priyanka Agarwal, Vipul Agarwal, Anant Agarwal</span></div>
         </div>
       </div>
