@@ -78,6 +78,8 @@ html[data-photos]:not([data-order="groom"]) section[data-screen-label="Invitatio
 html[data-photos] section[data-screen-label="Countdown"] { padding-bottom: 12px !important; }
 html[data-photos] section[data-screen-label="Gallery"] { padding-top: 40px !important; }
 html[data-photos] .v-nophoto { display: none !important; }
+html:not([data-mehendi]) .v-meh { display: none !important; }
+html[data-order="groom"]:not([data-photos]) .eng-arch, html[data-mehendi] .eng-arch { height: 298px !important; }
 html[data-order="groom"]:not([data-photos]) .v-gpar { margin-top: 0 !important; }
 html[data-order="groom"]:not([data-photos]) .v-ggp { font-weight: 500; }
 @media (max-width: 345px) { .v-gpn { font-size: 10.4px !important; } }
@@ -306,8 +308,27 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
     <section data-screen-label="Save the Dates" style="position: relative; padding: 62px 28px 8px; text-align: center; overflow: hidden; top: 100px; padding-top: 20px; padding-bottom: 40px">
 
       <div data-reveal="" style="position:relative; z-index:1; opacity:0; transform:translateY(26px); transition:opacity 1s ease, transform 1s ease;">
-        <div style="font-family: 'Beau Rivage', cursive; font-size: 40px; color: #CE6683; line-height: 1; margin-top: 0px; margin-bottom: 4px">Come join us</div><div style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF">For the festivities on</div>
+        <div style="font-family: 'Beau Rivage', cursive; font-size: 40px; color: #CE6683; line-height: 1; margin-top: 0px; margin-bottom: 4px">Come join us</div><div style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; padding-bottom: 24px">For the festivities on</div>
         
+      </div>
+
+      <!-- MEHENDI (only on mehendi pages) -->
+      <div class="v-meh" data-reveal="" style="position: relative; z-index: 1; margin-top: 36px; opacity: 0; transform: translateY(26px); transition: opacity 1s ease, transform 1s ease;">
+        <div style="position: relative; width: 202px; height: 369px; margin: 0 auto"><img fetchpriority="low" decoding="async" src="assets/mehendi.webp" alt="Mehendi" style="position: absolute; top: 0; left: -137px; width: 472px; max-width: none; height: auto; pointer-events: none"></div>
+        <div style="font-family: 'Beau Rivage', cursive; font-size: 38px; color: #CE6683; line-height: 1; margin-top: 0px">Mehendi</div>
+        {{ dateMehendi }}
+        <div style="margin:18px auto 0; display:flex; flex-direction:column; align-items:center; gap:12px; max-width:280px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="height:1px; width:24px; background:#CE6683; opacity:.45;"></span>
+            <span style="font-family:'Cormorant Garamond', serif; font-size:18px; color:#CE6683; font-weight:600; white-space:nowrap;">6:30 PM onwards</span>
+            <span style="height:1px; width:24px; background:#CE6683; opacity:.45;"></span>
+          </div>
+          <div style="font-size:17px; color:#3A3A3A; line-height:1.45; text-wrap:pretty;">RBI Colony, Hauz Khas<br>New Delhi</div>
+          <a href="https://www.google.com/maps/place/RBI+Colony/@28.5442419,77.2052686,1112m/data=!3m2!1e3!4b1!4m6!3m5!1s0x390ce312539b42c7:0xf44d81b9b98d185f!8m2!3d28.5442372!4d77.2078489!16s%2Fg%2F11s7tl4sfv?entry=tts&amp;g_ep=EgoyMDI2MTAyMC4wIPu8ASoASAFQAw%3D%3D" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:10px 22px; border:1px solid rgba(54,74,191,.4); border-radius:999px; font-size:13.5px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#364ABF; text-decoration:none; cursor:pointer;" style-hover="background:rgba(54,74,191,.06);">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
+            Get Directions
+          </a>
+        </div>
       </div>
 
       <!-- ENGAGEMENT -->
@@ -315,7 +336,7 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
         <div style="position: relative; width: 188px; margin: 0 auto">
           <img fetchpriority="low" decoding="async" src="assets/peony.webp" alt="" style="position: absolute; width: 252px; z-index: 0; pointer-events: none; top: -50px; transform-origin: 60% 80%; animation: an-wind1 5.6s ease-in-out infinite">
           
-          <div style="position: relative; z-index: 1; width: 188px; height: 248px; border-radius: 999px 999px 14px 14px; overflow: hidden; box-shadow: 0 0 0 7px #FFFFFF, 0 8px 18px rgba(120,90,70,.14)">
+          <div class="eng-arch" style="position: relative; z-index: 1; width: 188px; height: 248px; border-radius: 999px 999px 14px 14px; overflow: hidden; box-shadow: 0 0 0 7px #FFFFFF, 0 8px 18px rgba(120,90,70,.14)">
             <img fetchpriority="low" decoding="async" id="img-engagement" src="assets/engagement.webp" alt="Engagement" style="width: 100%; height: 100%; object-fit: cover; display: block">
           </div>
         </div>
@@ -368,7 +389,7 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
               <span style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #3A3A3A; text-align: left;">Vidai</span>
             </div>
           </div>
-          <a href="https://maps.app.goo.gl/xeRJuPQBKvUG1V3o8" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 10px 22px; border: 1px solid rgba(54,74,191,.4); border-radius: 999px; font-size: 13.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; text-decoration: none; cursor: pointer; padding-top: 10px" style-hover="background:rgba(54,74,191,.06);">
+          <a href="https://www.google.com/maps/search/?api=1&amp;query=Jhankar+Banquets+%26+Lawns%2C+Khel+Gaon+Marg%2C+New+Delhi" target="_blank" rel="noopener" onClick="{{ openLink }}" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 10px 22px; border: 1px solid rgba(54,74,191,.4); border-radius: 999px; font-size: 13.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; text-decoration: none; cursor: pointer; padding-top: 10px" style-hover="background:rgba(54,74,191,.06);">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z" stroke="#364ABF" stroke-width="1.6"></path><circle cx="12" cy="10" r="3" stroke="#364ABF" stroke-width="1.6"></circle></svg>
             Get Directions
           </a>
@@ -749,7 +770,7 @@ class Component extends DCLogic {
     }
   }
 
-  dateBlock(day) {
+  dateBlock(day, mon = 'Dec') {
     const blue = '#313B70';
     const pink = '#CE6683';
     const e = React.createElement;
@@ -767,7 +788,7 @@ class Component extends DCLogic {
     }, day);
     return e('div', {
       style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '14px' },
-    }, side('Dec'), rule(), numeral, rule(), side('2026'));
+    }, side(mon), rule(), numeral, rule(), side('2026'));
   }
 
   // ---- "Send your blessings": posts to the Google Sheet web app (Apps Script) ----
@@ -917,6 +938,7 @@ class Component extends DCLogic {
       rowA: this.makeRow(photosA),
       rowB: this.makeRow(photosB),
       dateEngagement: this.dateBlock('01'),
+      dateMehendi: this.dateBlock('30', 'Nov'),
       dateWedding: this.dateBlock('02'),
       ...this.wishVals(),
     };
