@@ -81,6 +81,8 @@ html:not([data-mehendi]) .v-meh { display: none !important; }
 html[data-reception] .v-norec { display: none !important; }
 html[data-reception] .v-rec { display: flex !important; }
 html[data-reception] .wed-btn { margin-top: 12px !important; }
+html[data-reception][data-events="wedding"] .cj-sub { display: none !important; }
+html[data-reception][data-events="wedding"] .cj-h { margin-bottom: 28px !important; }
 html[data-reception]:not([data-order="groom"]) .v-norec-h { display: none !important; }
 html[data-reception]:not([data-order="groom"]) .v-rec-h { display: inline !important; }
 html[data-order="groom"]:not([data-photos]) .eng-arch, html[data-mehendi] .eng-arch { height: 298px !important; }
@@ -312,7 +314,7 @@ html:not([data-photos]) section[data-screen-label="Save the Dates"] { margin-top
     <section data-screen-label="Save the Dates" style="position: relative; padding: 62px 28px 8px; text-align: center; overflow: hidden; top: 100px; padding-top: 20px; padding-bottom: 40px">
 
       <div data-reveal="" style="position:relative; z-index:1; opacity:0; transform:translateY(26px); transition:opacity 1s ease, transform 1s ease;">
-        <div style="font-family: 'Beau Rivage', cursive; font-size: 40px; color: #CE6683; line-height: 1; margin-top: 0px; margin-bottom: 4px">Come join us</div><div style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; padding-bottom: 24px">For the festivities on</div>
+        <div style="font-family: 'Beau Rivage', cursive; font-size: 40px; color: #CE6683; line-height: 1; margin-top: 0px; margin-bottom: 4px" class="cj-h">Come join us</div><div class="cj-sub" style="font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #364ABF; padding-bottom: 24px">For the festivities on</div>
         
       </div>
 
