@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nupur &amp; Aditya · Wedding Album</title>
+<meta name="description" content="Share the photos and videos you captured at Nupur & Aditya's wedding.">
+<meta name="robots" content="noindex, nofollow">
+<!-- Google Drive image links refuse requests that carry a Referer header -->
+<meta name="referrer" content="no-referrer">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Nupur &amp; Aditya · Wedding Album">
+<meta property="og:description" content="Share the moments you captured with us.">
+<meta property="og:image" content="https://nupurandaditya.online/assets/og.jpg">
+<meta name="theme-color" content="#FEF7F1">
+<link rel="icon" type="image/png" href="/assets/an-monogram.png">
+<link rel="stylesheet" href="/assets/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="petals" aria-hidden="true"></div>
+
+<!-- Locked state (no key) -->
+<section id="locked" class="locked" hidden>
+  <span class="mono" role="img" aria-label="Nupur and Aditya"></span>
+  <h1 class="headline">Scan the QR code<br><em>to open the album</em></h1>
+  <form id="codeForm" class="code-form">
+    <input id="codeInput" placeholder="Album code" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="btn btn-primary" type="submit">Open</button>
+  </form>
+  <p id="codeErr" class="err" hidden>That code didn't work. Please try again.</p>
+</section>
+
+<main id="app" hidden>
+  <header class="hero">
+    <span class="mono" role="img" aria-label="Nupur and Aditya"></span>
+    <h1 class="headline">Help us remember<br><em>every moment</em></h1>
+    <div class="cta">
+      <button class="btn btn-primary btn-lg" data-open-upload>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Upload photos
+      </button>
+    </div>
+  </header>
+
+  <section id="gallery" class="gallery-wrap">
+    <nav class="tabs" id="tabs" aria-label="Albums"></nav>
+    <div id="newPill" class="new-pill" hidden></div>
+    <div id="grid" class="grid" aria-live="polite"></div>
+    <div id="empty" class="empty" hidden>
+      <p>No photos yet. Be the first!</p>
+    </div>
+    <div id="loading" class="loading"><span></span><span></span><span></span></div>
+  </section>
+
+  <footer class="foot">
+    <a href="/" aria-label="Wedding invitation"><span class="mono" aria-hidden="true"></span></a>
+  </footer>
+
+  <button class="fab" data-open-upload aria-label="Upload photos">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    <span>Upload photos</span>
+  </button>
+</main>
+
+<!-- Upload sheet -->
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-backdrop" data-close-sheet></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-grab"></div>
+    <button class="icon-btn sheet-x" data-close-sheet aria-label="Close">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <div id="stepPick">
+      <h2 id="sheetTitle" class="script-sm">Share your memories</h2>
+      <label class="field-label">Which function?</label>
+      <div class="chips" id="albumChips"></div>
+      <label class="field-label" for="guestName">Your name <span class="opt">(optional, so we know who to thank)</span></label>
+      <input id="guestName" class="input" maxlength="40" placeholder="e.g. Riya Sharma" autocomplete="name">
+      <label class="picker" for="fileInput">
+        <input id="fileInput" type="file" accept="image/*,video/*" multiple>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
+        <strong>Choose photos &amp; videos</strong>
+        <span>from your gallery. Select as many as you like.</span>
+      </label>
+      <p class="hint">Full-quality originals are saved. Videos up to 150 MB each.</p>
+    </div>
+
+    <div id="stepUpload" hidden>
+      <h2 class="script-sm" id="upTitle">Uploading…</h2>
+      <div class="overall"><div class="bar"><i id="overallBar"></i></div><p id="overallText"></p></div>
+      <p class="hint keep-open">Please keep this screen open until it's done.</p>
+      <ul id="queue" class="queue"></ul>
+      <div class="sheet-actions" id="doneActions" hidden>
+        <button class="btn btn-ghost" id="addMore">Add more</button>
+        <button class="btn btn-primary" id="seeAlbum">See the album</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox" hidden>
+  <div class="lb-top">
+    <span id="lbCount"></span>
+    <div class="lb-actions">
+      <button class="icon-btn" id="lbHide" hidden aria-label="Hide from album" title="Hide from album">
+        <svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A10 10 0 0112 5c5 0 9 4.5 10 7-.4 1-1.2 2.3-2.4 3.6M6.3 6.3C4.3 7.6 2.7 9.6 2 12c1 2.5 5 7 10 7 1.7 0 3.3-.5 4.6-1.3"/></svg>
+      </button>
+      <a class="icon-btn" id="lbDownload" aria-label="Download" title="Download" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+      </a>
+      <button class="icon-btn" data-close-lb aria-label="Close" title="Close">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div class="lb-stage" id="lbStage"></div>
+  <button class="lb-nav lb-next" id="lbNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div class="lb-caption" id="lbCaption"></div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
