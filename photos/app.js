@@ -42,7 +42,9 @@
     colH: [],
     lbIndex: -1,
     uploading: 0,
-    uploadMode: store.get('wp_mode') || 'direct'
+    uploadMode: store.get('wp_mode') || 'direct',
+    selecting: false,
+    sel: new Set()
   };
 
   /* ================================================================ */
@@ -129,9 +131,15 @@
 
     renderCollage();
     route();
+    $('#selToggle').hidden = !state.isAdmin;
 
     $$('[data-open-upload]').forEach(b => b.addEventListener('click', pickFiles));
-    window.addEventListener('resize', debounce(() => layout(true), 200));
+    // Phones fire "resize" whenever the address bar shrinks/grows while scrolling.
+    // Only redraw the grid when the width actually changes the number of columns.
+    window.addEventListener('resize', debounce(() => {
+      if (state.cols.length && colCount() === state.cols.length) return;
+      layout(true);
+    }, 200));
     startPetals();
   }
 
@@ -148,17 +156,25 @@
       const pendingMine = state.items.filter(i => state.local.has(i.id) && !serverIds.has(i.id));
       const next = pendingMine.concat(items);
 
-      if (silent && fresh.length && state.items.length && document.body.classList.contains('view-album') && window.scrollY > 300) {
-        const pill = $('#newPill');
-        pill.textContent = `↑ ${fresh.length} new ${fresh.length === 1 ? 'memory' : 'memories'}`;
-        pill.hidden = false;
-        pill.onclick = () => { pill.hidden = true; state.items = next; refresh(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+      // Nothing changed → never touch the page.
+      const sig = arr => arr.map(i => i.id).join(',');
+      if (silent && sig(next) === sig(state.items)) return;
+
+      // Someone is scrolling the album → don't redraw under their finger.
+      // New photos show a small "↑ N new" pill; other changes wait for the next quiet refresh.
+      const scrolling = document.body.classList.contains('view-album') && window.scrollY > 300;
+      if (silent && (scrolling || state.selecting || !lb.hidden)) {
+        if (fresh.length && scrolling) {
+          const pill = $('#newPill');
+          pill.textContent = `↑ ${fresh.length} new ${fresh.length === 1 ? 'photo' : 'photos'}`;
+          pill.hidden = false;
+          pill.onclick = () => { pill.hidden = true; state.items = next; refresh(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        }
         return;
       }
-      if (!silent || fresh.length || next.length !== state.items.length) {
-        state.items = next;
-        refresh();
-      }
+      $('#newPill').hidden = true;
+      state.items = next;
+      refresh();
     } catch (e) {
       if (!silent) toast('Could not load the album. Pull to refresh in a moment.');
     } finally {
@@ -297,7 +313,9 @@
     }
     if (it.v) b.insertAdjacentHTML('beforeend', '<span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>');
     if (it.g) b.insertAdjacentHTML('beforeend', `<span class="by">${esc(it.g)}</span>`);
-    b.onclick = () => openLightbox(idx);
+    b.dataset.id = it.id;
+    if (state.sel.has(it.id)) b.classList.add('sel');
+    b.onclick = () => (state.selecting ? toggleSel(it.id, b) : openLightbox(idx));
     return b;
   }
 
@@ -314,7 +332,7 @@
   // Three columns of photos drifting vertically (middle one in the opposite direction), looping forever.
   function renderCollage() {
     const pics = state.items.filter(i => !i.v).slice(0, 45);
-    const key = pics.map(p => p.id).join(',') + '|' + innerWidth + 'x' + innerHeight;
+    const key = pics.map(p => p.id).join(',') + '|' + innerWidth; // width only: address-bar height changes must not redraw
     const el = $('#collage');
     // Hidden (album page) → nothing to measure; render again when home is shown.
     if (el.clientWidth < 60 || el.clientHeight < 60) { collageKey = null; return; }
@@ -389,11 +407,107 @@
     document.body.classList.toggle('view-album', album);
     if (album !== was) {
       window.scrollTo(0, 0);
-      if (album) layout(true); else renderCollage();
+      if (album) layout(true); else { setSelecting(false); renderCollage(); }
     }
   }
   window.addEventListener('hashchange', route);
   window.addEventListener('resize', debounce(() => renderCollage(), 300));
+
+  /* ================================================================ */
+  /* Admin multi-select: Download / Hide / Delete                     */
+  /* ================================================================ */
+  function setSelecting(on) {
+    state.selecting = on;
+    if (!on) state.sel.clear();
+    document.body.classList.toggle('selecting', on);
+    $('#selBar').hidden = !on;
+    $('#selToggle').textContent = on ? 'Cancel' : 'Select';
+    $$('.tile.sel').forEach(t => { if (!state.sel.has(t.dataset.id)) t.classList.remove('sel'); });
+    updateSelUI();
+  }
+
+  function toggleSel(id, el) {
+    if (state.sel.has(id)) state.sel.delete(id); else state.sel.add(id);
+    el.classList.toggle('sel', state.sel.has(id));
+    updateSelUI();
+  }
+
+  function updateSelUI() {
+    const n = state.sel.size;
+    $('#albumTitle').textContent = state.selecting ? (n ? `${n} selected` : 'Select photos') : 'Our album';
+    ['#selDownload', '#selHide', '#selDelete'].forEach(s => { $(s).disabled = !n; });
+    const all = state.view.length && n === state.view.length;
+    $('#selAll').textContent = all ? 'Clear' : 'Select all';
+  }
+
+  $('#selToggle').onclick = () => setSelecting(!state.selecting);
+  $('#selAll').onclick = () => {
+    const all = state.view.length && state.sel.size === state.view.length;
+    state.sel = new Set(all ? [] : state.view.map(i => i.id));
+    $$('.tile').forEach(t => t.classList.toggle('sel', state.sel.has(t.dataset.id)));
+    updateSelUI();
+  };
+
+  // Run one API call per photo, 3 at a time, with a live count in the title.
+  async function bulk(action, verb) {
+    const ids = [...state.sel];
+    let done = 0, failed = 0;
+    const queue = ids.slice();
+    const title = $('#albumTitle');
+    const worker = async () => {
+      while (queue.length) {
+        const id = queue.shift();
+        try { await api({ action, id }, 2); state.items = state.items.filter(x => x.id !== id); }
+        catch (e) { failed++; }
+        done++;
+        title.textContent = `${verb} ${done}/${ids.length}…`;
+      }
+    };
+    document.body.classList.add('busy');
+    await Promise.all([worker(), worker(), worker()]);
+    document.body.classList.remove('busy');
+    setSelecting(false);
+    refresh();
+    return { ok: ids.length - failed, failed };
+  }
+
+  $('#selDelete').onclick = async () => {
+    const n = state.sel.size;
+    if (!n || !confirm(`Delete ${n} ${n === 1 ? 'photo' : 'photos'}? They move to your Google Drive trash (recoverable for 30 days).`)) return;
+    const r = await bulk('delete', 'Deleting');
+    toast(r.failed ? `Deleted ${r.ok}, ${r.failed} failed` : `Deleted ${r.ok} ${r.ok === 1 ? 'photo' : 'photos'}`);
+  };
+
+  $('#selHide').onclick = async () => {
+    const n = state.sel.size;
+    if (!n || !confirm(`Hide ${n} ${n === 1 ? 'photo' : 'photos'} from the album? They stay in your Drive.`)) return;
+    const r = await bulk('hide', 'Hiding');
+    toast(r.failed ? `Hidden ${r.ok}, ${r.failed} failed` : `Hidden ${r.ok} ${r.ok === 1 ? 'photo' : 'photos'}`);
+  };
+
+  $('#selDownload').onclick = async () => {
+    const ids = [...state.sel];
+    if (!ids.length) return;
+    const title = $('#albumTitle');
+    title.textContent = `Preparing ${ids.length}…`;
+    document.body.classList.add('busy');
+    try {
+      const r = DEMO ? { url: 'https://drive.google.com/', copied: ids.length, requested: ids.length } : await api({ action: 'collect', ids }, 1);
+      setSelecting(false);
+      $('#noticeText').textContent = r.copied === r.requested
+        ? `${r.copied} ${r.copied === 1 ? 'photo is' : 'photos are'} ready in a new Drive folder. Open it and tap Download to get a zip.`
+        : `${r.copied} of ${r.requested} photos are ready (it was a big batch). Open the folder and tap Download, then select the rest again.`;
+      $('#noticeLink').href = r.url;
+      $('#notice').hidden = false;
+    } catch (e) {
+      toast('Could not prepare the download: ' + e.message);
+      updateSelUI();
+    } finally {
+      document.body.classList.remove('busy');
+    }
+  };
+  $('#noticeClose').onclick = () => { $('#notice').hidden = true; };
+  $('#noticeLink').addEventListener('click', () => setTimeout(() => { $('#notice').hidden = true; }, 300));
 
   /* ================================================================ */
   /* Lightbox                                                         */

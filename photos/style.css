@@ -500,3 +500,52 @@ body.view-album .first { display: none; }
 }
 .q-del svg { width: 14px; height: 14px; stroke-width: 2.6; }
 .q-del:disabled { opacity: .4; }
+
+
+/* ---------------- Admin multi-select ---------------- */
+.album-bar { grid-template-columns: 64px 1fr 64px; }
+.album-right { display: flex; justify-content: flex-end; align-items: center; }
+.sel-toggle {
+  border: 0; background: none; cursor: pointer; padding: 8px 4px;
+  font-family: var(--sans); font-size: 15px; font-weight: 600; color: var(--rose);
+}
+#selToggle:not([hidden]) ~ .mono, .album-right:has(#selToggle:not([hidden])) .mono { display: none; }
+
+.selecting .tile { cursor: pointer; }
+.selecting .tile::before {
+  content: ''; position: absolute; top: 8px; right: 8px; z-index: 2; width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #fff; background: rgba(0, 0, 0, .25); box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+}
+.selecting .tile.sel::before {
+  border-color: var(--rose); background: var(--rose) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/14px no-repeat;
+}
+.selecting .tile.sel img, .selecting .tile.sel video { transform: scale(.92); border-radius: 6px; }
+.tile img, .tile video { transition: opacity .5s ease, transform .15s ease; }
+.selecting .tile .play { display: none; }
+.selecting .cta-bar { display: none; }
+
+.sel-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 31;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 16px calc(10px + var(--safe-b));
+  background: #fff; border-top: 1px solid rgba(58, 58, 58, .1); font-family: var(--sans);
+}
+.sel-actions { display: flex; gap: 4px; }
+.sel-act {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px; padding: 6px 8px;
+  border: 0; border-radius: 10px; background: none; cursor: pointer;
+  font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--ink);
+}
+.sel-act svg { width: 22px; height: 22px; }
+.sel-act.danger { color: #C0392B; }
+.sel-act:disabled { opacity: .35; cursor: default; }
+.busy .sel-bar, .busy .album-bar { pointer-events: none; opacity: .7; }
+
+.notice {
+  position: fixed; left: 16px; right: 16px; bottom: calc(16px + var(--safe-b)); z-index: 40; margin: 0 auto; max-width: 420px;
+  padding: 18px; border-radius: 16px; background: #fff; box-shadow: 0 10px 30px rgba(58, 40, 30, .25);
+  font-family: var(--sans);
+}
+.notice p { margin: 0 0 14px; font-size: 15px; line-height: 1.45; color: var(--ink); }
+.notice-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.notice-actions .btn { padding: 12px 16px; font-size: 15px; }
