@@ -2,7 +2,7 @@
 window.WP_CONFIG = {
   // Paste your Apps Script Web App URL here after deploying (ends in /exec).
   // Leave empty to run the page in demo mode with sample photos.
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyi3wQ2XzVN6F5C6GtXCd0iOJb19P44JCMMpAa9M3aBtViWDJ0uCE9XCkju5cyo1JRJ/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwkcAWt7XHmbEL7zxRuiisJLpqdAW1L928ZTAON6XiBsucRcmpvJft17gBx24ZjzvM5/exec',
 
   COUPLE: 'Nupur & Aditya',
 

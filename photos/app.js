@@ -15,6 +15,15 @@
   // ---- Keys: guest key comes from the QR link (?k=...), admin key from ?admin=...
   let KEY = qs.get('k') || store.get('wp_key');
   if (qs.get('k')) store.set('wp_key', qs.get('k'));
+  // Anonymous random id for this phone, so a guest can later delete photos they uploaded.
+  const DEVICE = store.get('wp_dev') || (() => {
+    const a = new Uint8Array(16);
+    (window.crypto || window.msCrypto).getRandomValues(a);
+    const id = [...a].map(b => b.toString(16).padStart(2, '0')).join('');
+    store.set('wp_dev', id);
+    return id;
+  })();
+
   let ADMIN = qs.get('admin') || store.get('wp_admin');
   if (qs.has('admin')) {
     store.set('wp_admin', qs.get('admin'));
@@ -48,7 +57,7 @@
       try {
         const r = await fetch(C.SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify(Object.assign({}, body, { k: KEY, admin: ADMIN }))
+          body: JSON.stringify(Object.assign({}, body, { k: KEY, admin: ADMIN, device: DEVICE }))
         });
         const j = await r.json();
         if (j.ok) return j;
@@ -118,11 +127,10 @@
     setInterval(() => { if (document.visibilityState === 'visible') loadItems(true); }, 45000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadItems(true); });
 
-    // Floating "Add photos" button appears once the hero buttons scroll away
-    const fab = $('.fab');
-    new IntersectionObserver(([e]) => fab.classList.toggle('show', !e.isIntersecting)).observe($('.cta'));
+    renderCollage();
+    route();
 
-    $$('[data-open-upload]').forEach(b => b.addEventListener('click', openSheet));
+    $$('[data-open-upload]').forEach(b => b.addEventListener('click', pickFiles));
     window.addEventListener('resize', debounce(() => layout(true), 200));
     startPetals();
   }
@@ -140,11 +148,11 @@
       const pendingMine = state.items.filter(i => state.local.has(i.id) && !serverIds.has(i.id));
       const next = pendingMine.concat(items);
 
-      if (silent && fresh.length && state.items.length && window.scrollY > $('#gallery').offsetTop + 200) {
+      if (silent && fresh.length && state.items.length && document.body.classList.contains('view-album') && window.scrollY > 300) {
         const pill = $('#newPill');
         pill.textContent = `↑ ${fresh.length} new ${fresh.length === 1 ? 'memory' : 'memories'}`;
         pill.hidden = false;
-        pill.onclick = () => { pill.hidden = true; state.items = next; refresh(); $('#gallery').scrollIntoView({ behavior: 'smooth' }); };
+        pill.onclick = () => { pill.hidden = true; state.items = next; refresh(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
         return;
       }
       if (!silent || fresh.length || next.length !== state.items.length) {
@@ -159,6 +167,7 @@
   }
 
   function refresh() {
+    renderCollage();
     renderTabs();
     updateStats();
     layout(true);
@@ -180,6 +189,9 @@
       .concat(C.ALBUMS.map(a => ({ id: a.id, label: a.label, when: counts[a.id] ? String(counts[a.id]) : a.when })));
     const nav = $('#tabs');
     nav.innerHTML = '';
+    nav.hidden = true; // one album for guests: no function tabs
+    state.album = 'all';
+    return;
     tabs.forEach(t => {
       const b = document.createElement('button');
       b.className = 'tab';
@@ -191,8 +203,7 @@
         state.album = t.id;
         renderTabs();
         layout(true);
-        const g = $('#gallery');
-        if (window.scrollY > g.offsetTop) g.scrollIntoView();
+        window.scrollTo(0, 0);
       };
       nav.appendChild(b);
     });
@@ -290,6 +301,100 @@
     return b;
   }
 
+
+  /* ================================================================ */
+  /* Top collage: rows of photos that scroll slowly, looping forever   */
+  /* ================================================================ */
+  const COLS = 3;
+  const PLACEHOLDERS = ['/assets/hero-couple.webp', '/assets/mehendi.webp', '/assets/engagement.webp',
+    '/assets/wedding-watercolor.webp', '/assets/hands-holding.webp', '/assets/arch-bougainvillea.webp']
+    .map((src, i) => ({ id: 'ph' + i, src, w: 0, h: 0 }));
+  let collageKey = null;
+
+  // Three columns of photos drifting vertically (middle one in the opposite direction), looping forever.
+  function renderCollage() {
+    const pics = state.items.filter(i => !i.v).slice(0, 45);
+    const key = pics.map(p => p.id).join(',') + '|' + innerWidth + 'x' + innerHeight;
+    const el = $('#collage');
+    // Hidden (album page) → nothing to measure; render again when home is shown.
+    if (el.clientWidth < 60 || el.clientHeight < 60) { collageKey = null; return; }
+    if (key === collageKey) return;
+    collageKey = key;
+
+    const list = pics.length ? pics : PLACEHOLDERS;
+    const gap = 6;
+    const colW = (el.clientWidth - gap * (COLS + 1)) / COLS;
+    // Mixed tile shapes so the collage feels organic: real portraits stay portrait,
+    // other photos get a varied crop (tall, square, wide) based on their position.
+    const SHAPES = [0.75, 1.25, 0.66, 1, 0.8, 1.5, 0.7, 1.1];
+    const ar = (it, pos) => {
+      const real = it.w && it.h ? it.w / it.h : 0;
+      if (real && real < 0.9) return Math.max(0.6, real);
+      return SHAPES[pos % SHAPES.length];
+    };
+    const height = items => items.reduce((sum, it, i) => sum + colW / ar(it, i) + gap, 0);
+    el.innerHTML = '';
+
+    for (let c = 0; c < COLS; c++) {
+      // spread photos across columns (rotated so columns don't line up), repeat until taller than the box
+      let col;
+      if (list.length >= COLS * 4) {
+        col = list.filter((_, i) => i % COLS === c);
+      } else {
+        // few photos: every column shows all of them, starting at a different one
+        const k = Math.round((c * list.length) / COLS) % list.length;
+        col = list.slice(k).concat(list.slice(0, k));
+        if (c % 2) col.reverse();
+      }
+      let filled = col.slice();
+      for (let guard = 0; guard < 30 && height(filled) < el.clientHeight * 1.4; guard++) filled = filled.concat(col);
+
+      const colEl = document.createElement('div');
+      colEl.className = 'c-col' + (c % 2 ? ' rev' : '');
+      const track = document.createElement('div');
+      track.className = 'c-track';
+      // two identical halves → translateY(-50%) loops seamlessly
+      const shift = c * 3; // different shape sequence per column
+      const shaped = filled.map((it, i) => ({ it, a: ar(it, i + shift) }));
+      const colHeight = shaped.reduce((sum, x) => sum + colW / x.a + gap, 0);
+      shaped.concat(shaped).forEach(({ it, a }) => {
+        const t = document.createElement('button');
+        t.className = 'c-tile';
+        t.style.aspectRatio = String(a);
+        const img = new Image();
+        img.alt = '';
+        img.decoding = 'async';
+        img.onload = () => img.classList.add('ok');
+        img.src = thumbUrl(it, 400);
+        t.appendChild(img);
+        t.onclick = it.id.startsWith('ph') ? pickFiles : openFromCollage;
+        track.appendChild(t);
+      });
+      const dur = Math.round(colHeight / (16 + c * 3));
+      track.style.animationDuration = `${dur}s`;
+      track.style.animationDelay = `-${Math.round(dur * (c * 0.37 % 1))}s`; // start columns at different points
+      colEl.appendChild(track);
+      el.appendChild(colEl);
+    }
+  }
+
+  function openFromCollage() {
+    location.hash = 'album';
+  }
+
+  /* ---------------- Home <-> Album page (hash routing) ---------------- */
+  function route() {
+    const album = location.hash === '#album';
+    const was = document.body.classList.contains('view-album');
+    document.body.classList.toggle('view-album', album);
+    if (album !== was) {
+      window.scrollTo(0, 0);
+      if (album) layout(true); else renderCollage();
+    }
+  }
+  window.addEventListener('hashchange', route);
+  window.addEventListener('resize', debounce(() => renderCollage(), 300));
+
   /* ================================================================ */
   /* Lightbox                                                         */
   /* ================================================================ */
@@ -341,11 +446,36 @@
       [1, -1].forEach(d => { const n = v[(state.lbIndex + d + v.length) % v.length]; if (n && !n.v) new Image().src = fullUrl(n); });
     }
     const album = C.ALBUMS.find(a => a.id === it.a);
-    $('#lbCaption').innerHTML = (it.g ? `<b>${esc(it.g)}</b><br>` : '<span>Shared by a guest</span><br>') +
-      `<span>${esc(album ? album.label : it.a || '')}</span>`;
+    $('#lbCaption').innerHTML = it.g ? `<b>${esc(it.g)}</b>` : '<span>Shared by a guest</span>';
     $('#lbCount').textContent = `${state.lbIndex + 1} / ${v.length}`;
     $('#lbDownload').href = downloadUrl(it);
+    $('#lbDelete').hidden = !(state.isAdmin || isMine(it));
   }
+
+  // Photos this phone uploaded (server marks them m:1; this session's uploads are known locally).
+  function isMine(it) { return !!it.m || state.local.has(it.id); }
+
+  async function deletePhoto(id) {
+    await api({ action: 'delete', id }, 2);
+    state.items = state.items.filter(x => x.id !== id);
+    refresh();
+  }
+
+  $('#lbDelete').onclick = async () => {
+    const it = state.view[state.lbIndex];
+    if (!it) return;
+    const msg = isMine(it)
+      ? 'Delete this photo? It will be removed from the album.'
+      : 'Delete this photo? It moves to your Google Drive trash (recoverable for 30 days).';
+    if (!confirm(msg)) return;
+    try {
+      await deletePhoto(it.id);
+      const j = jobs.find(x => x.id === it.id);
+      if (j) removeJob(j);
+      showSlide();
+      toast('Photo deleted');
+    } catch (e) { toast('Could not delete: ' + e.message); }
+  };
   $('#lbPrev').onclick = () => { state.lbIndex--; showSlide(); };
   $('#lbNext').onclick = () => { state.lbIndex++; showSlide(); };
   $$('[data-close-lb]').forEach(b => b.onclick = () => closeLightbox());
@@ -384,30 +514,42 @@
   });
 
   /* ================================================================ */
-  /* Upload sheet                                                     */
+  /* Upload flow                                                      */
+  /*   tap Upload -> phone gallery opens -> uploads start immediately. */
+  /*   Name and function are optional extras shown while uploading;  */
+  /*   changing them later re-tags the photos already uploaded.      */
   /* ================================================================ */
-  let selectedAlbum = sessionStorageGet('wp_album') || defaultAlbum();
 
-  function defaultAlbum() {
-    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
-    let pick = C.ALBUMS[C.ALBUMS.length - 1].id;
-    for (const a of C.ALBUMS) if (a.date === today) pick = a.id;
-    if (today < C.ALBUMS[0].date) pick = C.ALBUMS[0].id;
-    for (let i = 0; i < C.ALBUMS.length - 1; i++) {
-      if (today > C.ALBUMS[i].date && today < C.ALBUMS[i + 1].date) pick = C.ALBUMS[i].id;
-    }
+  // Which function is happening now (IST). Day flips at 6 AM, so late-night
+  // photos still count for that evening's function.
+  function autoAlbum() {
+    const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(Date.now() - 6 * 3600 * 1000));
+    let pick = C.ALBUMS[0].id;
+    for (const a of C.ALBUMS) if (a.date <= day) pick = a.id;
     return pick;
   }
 
+  const batch = { guest: store.get('wp_name'), private: false };
+
+  function pickFiles() { $('#fileInput').click(); }
+
+  $('#fileInput').addEventListener('change', e => {
+    const files = [...e.target.files];
+    e.target.value = '';
+    if (files.length) startUploads(files);
+  });
+
   function openSheet() {
     const s = $('#sheet');
-    s.hidden = false;
-    document.body.classList.add('no-scroll');
-    history.pushState({ sheet: 1 }, '');
-    if (!state.uploading) showPickStep();
+    if (s.hidden) {
+      s.hidden = false;
+      document.body.classList.add('no-scroll');
+      history.pushState({ sheet: 1 }, '');
+    }
+    renderExtras();
   }
   function closeSheet(fromPop) {
-    if (state.uploading && !confirm('Uploads are still in progress. Close anyway? They will keep going in the background while this page stays open.')) {
+    if (state.uploading && !confirm('Uploads are still in progress. Close anyway? They will keep going while this page stays open.')) {
       if (fromPop) history.pushState({ sheet: 1 }, '');
       return;
     }
@@ -417,35 +559,76 @@
   }
   $$('[data-close-sheet]').forEach(b => b.onclick = () => closeSheet());
 
-  function showPickStep() {
-    $('#stepPick').hidden = false;
-    $('#stepUpload').hidden = true;
-    const chips = $('#albumChips');
-    chips.innerHTML = '';
-    C.ALBUMS.forEach(a => {
-      const b = document.createElement('button');
-      b.className = 'chip';
-      b.type = 'button';
-      b.setAttribute('aria-pressed', String(a.id === selectedAlbum));
-      b.innerHTML = `<b>${esc(a.label)}</b><small>${esc(a.when)}</small>`;
-      b.onclick = () => { selectedAlbum = a.id; sessionStorageSet('wp_album', a.id); showPickStep(); };
-      chips.appendChild(b);
-    });
-    const name = $('#guestName');
-    if (!name.value) name.value = store.get('wp_name');
+  /* ---------------- Optional extras: function + name ---------------- */
+  function albumLabel(id) {
+    const a = C.ALBUMS.find(x => x.id === id);
+    return a ? a.label : id;
   }
-  $('#guestName').addEventListener('change', e => store.set('wp_name', e.target.value.trim()));
 
-  $('#fileInput').addEventListener('change', e => {
-    const files = [...e.target.files];
-    e.target.value = '';
-    if (files.length) startUploads(files);
-  });
+  function renderExtras() {
+    $$('#visSeg button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.vis === 'private') === batch.private)));
+    const hasName = !!batch.guest;
+    $('#nameShow').hidden = !hasName;
+    $('#nameForm').hidden = hasName;
+    $('#nameNow').textContent = batch.guest || '';
+  }
+
+  $$('#visSeg button').forEach(b => b.onclick = () => setBatch({ private: b.dataset.vis === 'private' }));
+  $('#nameChange').onclick = () => {
+    $('#nameShow').hidden = true;
+    $('#nameForm').hidden = false;
+    const i = $('#guestName');
+    i.value = batch.guest || '';
+    i.focus();
+  };
+  $('#nameForm').onsubmit = e => {
+    e.preventDefault();
+    const i = $('#guestName');
+    i.blur();
+    setBatch({ guest: i.value.trim() });
+    if (batch.guest) toast(`Thanks, ${batch.guest}!`);
+  };
+
+  function setBatch(changes) {
+    Object.assign(batch, changes);
+    if ('guest' in changes) store.set('wp_name', batch.guest);
+    renderExtras();
+    retagDone();
+    const done = jobs.filter(j => j.status === 'done').length;
+    if (!$('#doneActions').hidden && !jobs.some(j => j.status === 'error')) {
+      $('#overallText').textContent = doneText(done);
+    }
+  }
+
+  function doneText(n) {
+    const w = n === 1 ? 'photo' : 'photos';
+    return batch.private ? `${n} ${w} sent privately to Nupur & Aditya` : `${n} ${w} added to the album`;
+  }
+
+  // Bring already-uploaded photos of this batch in line with the current name/function.
+  function retagDone() {
+    const stale = jobs.filter(j => j.status === 'done' && j.id && (j.private !== batch.private || j.guest !== batch.guest));
+    if (!stale.length) return;
+    const ids = stale.map(j => j.id);
+    stale.forEach(j => {
+      j.guest = batch.guest;
+      j.private = batch.private;
+      j.item.g = batch.guest;
+    });
+    // private photos leave the album; public ones (re)appear
+    state.items = state.items.filter(it => !ids.includes(it.id));
+    if (!batch.private) stale.slice().reverse().forEach(j => state.items.unshift(j.item));
+    refresh();
+    if (DEMO) return;
+    api({ action: 'retag', ids, guest: batch.guest || '', private: batch.private }, 3)
+      .catch(() => toast('Saved for your next uploads'));
+  }
 
   /* ---------------- Queue ---------------- */
   let jobs = [];
   let running = 0;
   let wakeLock = null;
+  const isActive = j => j.status === 'queued' || j.status === 'uploading';
 
   function guessMime(f) {
     if (f.type) return f.type;
@@ -455,30 +638,28 @@
   }
 
   function startUploads(files) {
-    store.set('wp_name', $('#guestName').value.trim());
-    $('#stepPick').hidden = true;
-    $('#stepUpload').hidden = false;
+    if (!jobs.some(isActive)) {
+      jobs = [];
+      $('#queue').innerHTML = '';
+      batch.private = false;
+    }
+    const max = C.MAX_FILE_MB * 1024 * 1024;
+    let added = 0;
+    files.forEach(f => {
+      const mime = guessMime(f);
+      if (!/^(image|video)\//.test(mime) || f.size === 0) return;
+      if (f.size > max) { toast(`${f.name} is larger than ${C.MAX_FILE_MB} MB and was skipped`); return; }
+      const job = { file: f, mime, album: null, guest: null, private: false, item: null, id: null, loaded: 0, status: 'queued', el: null, url: URL.createObjectURL(f) };
+      job.el = queueEl(job);
+      jobs.push(job);
+      added++;
+    });
+    if (!added) { toast('Please pick photos or videos.'); return; }
+
     $('#doneActions').hidden = true;
     $('.keep-open').hidden = false;
     $('#upTitle').textContent = 'Uploading…';
-    if (!jobs.some(j => j.status === 'queued' || j.status === 'uploading')) { jobs = []; $('#queue').innerHTML = ''; }
-
-    const guest = $('#guestName').value.trim();
-    const max = C.MAX_FILE_MB * 1024 * 1024;
-    let skipped = 0;
-    files.forEach(f => {
-      const mime = guessMime(f);
-      if (!/^(image|video)\//.test(mime) || f.size === 0) { skipped++; return; }
-      if (f.size > max) { skipped++; toast(`${f.name} is larger than ${C.MAX_FILE_MB} MB and was skipped`); return; }
-      const job = { file: f, mime, album: selectedAlbum, guest, loaded: 0, status: 'queued', el: null, url: URL.createObjectURL(f) };
-      job.el = queueEl(job);
-      jobs.push(job);
-    });
-    if (skipped && skipped === files.length) {
-      toast('Those files could not be uploaded. Please pick photos or videos.');
-      showPickStep();
-      return;
-    }
+    openSheet();
     updateOverall();
     acquireWakeLock();
     pump();
@@ -506,7 +687,25 @@
       state.uploading++;
       job.status = 'uploading';
       uploadOne(job)
-        .then(() => { job.status = 'done'; job.el.className = 'q done'; })
+        .then(() => {
+          job.status = 'done';
+          job.el.className = 'q done';
+          // small × on each finished thumbnail: "oops, not that one"
+          const x = document.createElement('button');
+          x.className = 'q-del';
+          x.type = 'button';
+          x.setAttribute('aria-label', 'Remove this photo');
+          x.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+          x.onclick = async e => {
+            e.stopPropagation();
+            if (!confirm('Remove this photo? It will be deleted from the album.')) return;
+            x.disabled = true;
+            try { await deletePhoto(job.id); removeJob(job); }
+            catch (err) { x.disabled = false; toast('Could not remove: ' + err.message); }
+          };
+          job.el.appendChild(x);
+          retagDone();
+        })
         .catch(err => {
           console.error(err);
           job.status = 'error';
@@ -525,12 +724,22 @@
     if (running === 0) allDone();
   }
 
+  function removeJob(job) {
+    jobs = jobs.filter(j => j !== job);
+    job.el.remove();
+    updateOverall();
+    if (!$('#doneActions').hidden) {
+      const done = jobs.filter(j => j.status === 'done').length;
+      $('#overallText').textContent = done ? doneText(done) : 'No photos uploaded';
+    }
+  }
+
   function updateOverall() {
     const total = jobs.reduce((s, j) => s + j.file.size, 0) || 1;
     const loaded = jobs.reduce((s, j) => s + (j.status === 'done' ? j.file.size : j.loaded), 0);
     const done = jobs.filter(j => j.status === 'done').length;
     $('#overallBar').style.width = `${Math.round((loaded / total) * 100)}%`;
-    $('#overallText').textContent = `${done} of ${jobs.length} uploaded · ${fmtMB(loaded)} of ${fmtMB(total)}`;
+    $('#overallText').textContent = `${done} of ${jobs.length} uploaded`;
   }
 
   function allDone() {
@@ -538,26 +747,26 @@
     releaseWakeLock();
     const done = jobs.filter(j => j.status === 'done').length;
     const failed = jobs.filter(j => j.status === 'error').length;
-    const album = C.ALBUMS.find(a => a.id === jobs[0].album);
     $('#upTitle').textContent = failed ? `${done} uploaded, ${failed} failed` : 'Thank you!';
     $('#overallText').textContent = failed
       ? 'Tap the red ones to try again.'
-      : `${done} ${done === 1 ? 'photo' : 'photos'} added to ${album ? album.label : 'the album'}`;
+      : doneText(done);
     $('#doneActions').hidden = false;
     $('.keep-open').hidden = true;
     if (!failed) burstPetals();
   }
-  $('#addMore').onclick = () => { jobs = []; $('#queue').innerHTML = ''; showPickStep(); $('#fileInput').click(); };
+  $('#addMore').onclick = pickFiles;
   $('#seeAlbum').onclick = () => {
-    const a = jobs[0] && jobs[0].album;
-    jobs = []; $('#queue').innerHTML = '';
     closeSheet();
-    if (a) { state.album = a; renderTabs(); layout(true); }
-    setTimeout(() => $('#gallery').scrollIntoView({ behavior: 'smooth' }), 50);
+    state.album = 'all'; layout(true);
+    setTimeout(() => { if (location.hash !== '#album') location.hash = 'album'; else layout(true); }, 150);
   };
 
   async function uploadOne(job) {
     const f = job.file;
+    job.album = autoAlbum(); // Drive folder only (sorted by date); guests never pick
+    job.guest = batch.guest;
+    job.private = batch.private;
     const dims = await getDims(job);
     const progress = n => { job.loaded = n; $('.qbar i', job.el).style.width = `${Math.round((n / f.size) * 100)}%`; updateOverall(); };
 
@@ -587,14 +796,15 @@
       file = await uploadProxy(uploadUrl, f, progress);
     }
     if (!file || !file.id) throw new Error('Upload did not finish');
-    await api({ action: 'finalize', id: file.id, guest: job.guest, name: f.name, width: dims.w, height: dims.h });
+    await api({ action: 'finalize', id: file.id, guest: job.guest, private: job.private, name: f.name, width: dims.w, height: dims.h });
     addMine(file.id, job, dims);
   }
 
   function addMine(id, job, dims) {
+    job.id = id;
     state.local.set(id, job.url);
-    state.items.unshift({ id, a: job.album, g: job.guest, v: job.mime.startsWith('video/') ? 1 : 0, t: new Date().toISOString(), w: dims.w, h: dims.h });
-    refresh();
+    job.item = { id, a: job.album, g: job.guest, v: job.mime.startsWith('video/') ? 1 : 0, t: new Date().toISOString(), w: dims.w, h: dims.h };
+    if (!job.private) { state.items.unshift(job.item); refresh(); }
   }
 
   // Straight from the phone to Google Drive, in 8 MB pieces.
@@ -715,7 +925,7 @@
       }
       return { ok: true, items: demoApi.items };
     }
-    if (body.action === 'hide') { demoApi.items = demoApi.items.filter(i => i.id !== body.id); return { ok: true }; }
+    if (body.action === 'hide' || body.action === 'delete') { demoApi.items = demoApi.items.filter(i => i.id !== body.id); return { ok: true }; }
     return { ok: true };
   }
 
