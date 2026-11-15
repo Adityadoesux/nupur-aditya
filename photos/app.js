@@ -129,6 +129,13 @@
     setInterval(() => { if (document.visibilityState === 'visible') loadItems(true); }, 45000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadItems(true); });
 
+    // Entry point: the QR code (…&qr=1) shows the landing cover; a shared link goes straight to Home.
+    if (qs.has('qr')) {
+      qs.delete('qr'); // so a forwarded copy of this URL opens Home, not the cover
+      history.replaceState(null, '', location.pathname + (qs.toString() ? '?' + qs : '') + location.hash);
+    } else if (!location.hash) {
+      history.replaceState(null, '', location.pathname + location.search + '#home');
+    }
     renderCollage();
     route();
     loadAnnouncements();
