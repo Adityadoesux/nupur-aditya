@@ -836,6 +836,7 @@
     if (document.body.classList.contains('view-home')) renderHome();
     const { now, next } = nowNext();
     const card = $('#nowCard');
+    if (!card) return; // landing page no longer shows "Up next"
     const e = now || next;
     card.hidden = !e;
     if (!e) return;
