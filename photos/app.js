@@ -131,9 +131,13 @@
 
     renderCollage();
     route();
+    loadAnnouncements();
+    loadSchedule();
+    renderNowCard();
+    setInterval(() => { renderNowCard(); if (document.visibilityState === 'visible') loadAnnouncements(); }, 60000);
     $('#selToggle').hidden = !state.isAdmin;
 
-    $$('[data-open-upload]').forEach(b => b.addEventListener('click', pickFiles));
+    $$('[data-open-upload]').forEach(b => b.addEventListener('click', () => pickFiles()));
     // Phones fire "resize" whenever the address bar shrinks/grows while scrolling.
     // Only redraw the grid when the width actually changes the number of columns.
     window.addEventListener('resize', debounce(() => {
@@ -182,12 +186,12 @@
     }
   }
 
-  function refresh() {
+  let refresh = function () {
     renderCollage();
     renderTabs();
     updateStats();
     layout(true);
-  }
+  };
 
   function updateStats() {
     if (!$('#stats')) return;
@@ -385,7 +389,7 @@
         img.onload = () => img.classList.add('ok');
         img.src = thumbUrl(it, 400);
         t.appendChild(img);
-        t.onclick = it.id.startsWith('ph') ? pickFiles : openFromCollage;
+        t.onclick = it.id.startsWith('ph') ? () => pickFiles() : openFromCollage;
         track.appendChild(t);
       });
       const dur = Math.round(colHeight / (16 + c * 3));
@@ -401,14 +405,35 @@
   }
 
   /* ---------------- Home <-> Album page (hash routing) ---------------- */
+  let lastRoute = null;
+  let backTo = '#'; // where the Updates page's back arrow goes
   function route() {
-    const album = location.hash === '#album';
-    const was = document.body.classList.contains('view-album');
+    const h = location.hash;
+    if (h !== '#updates' && h !== '#schedule') backTo = h || '#';
+    const album = h === '#album';
+    const mine = h === '#mine';
+    const missions = h === '#missions';
+    const missionId = h.startsWith('#mission/') ? decodeURIComponent(h.slice(9)) : null;
+    const updates = h === '#schedule' || h === '#updates';
+    const home = h === '#home';
+    document.body.classList.toggle('view-updates', updates);
+    document.body.classList.toggle('view-home', home);
     document.body.classList.toggle('view-album', album);
-    if (album !== was) {
-      window.scrollTo(0, 0);
-      if (album) layout(true); else { setSelecting(false); renderCollage(); }
-    }
+    document.body.classList.toggle('view-mine', mine);
+    document.body.classList.toggle('view-missions', missions);
+    document.body.classList.toggle('view-mission', !!missionId);
+    if (h === lastRoute) return;
+    lastRoute = h;
+    window.scrollTo(0, 0);
+    if (!album) setSelecting(false);
+    if (album) layout(true);
+    else if (mine) loadMine();
+    else if (missions) renderMissions();
+    else if (missionId) renderMissionDetail(missionId);
+    else if (updates) openUpdates();
+    else if (home) renderHome();
+    else renderCollage();
+    renderBanner();
   }
   window.addEventListener('hashchange', route);
   window.addEventListener('resize', debounce(() => renderCollage(), 300));
@@ -510,6 +535,592 @@
   $('#noticeLink').addEventListener('click', () => setTimeout(() => { $('#notice').hidden = true; }, 300));
 
   /* ================================================================ */
+  /* Wedding Missions                                                 */
+  /* ================================================================ */
+  const MISSIONS = (C.MISSIONS || []).slice();
+  function missionById(id) { return MISSIONS.find(m => m.id === id); }
+  function dayLabel(m) {
+    const a = m.day && C.ALBUMS.find(x => x.id === m.day);
+    return a ? `${a.label} · ${a.when}` : '';
+  }
+
+  // Missions this phone has completed (remembered locally + anything the server marks as ours).
+  function missionsDone() {
+    let local = [];
+    try { local = JSON.parse(store.get('wp_ms_done') || '[]'); } catch (e) {}
+    const set = new Set(local);
+    state.items.forEach(it => { if (it.ms && isMine(it)) set.add(it.ms); });
+    return new Set([...set].filter(id => missionById(id)));
+  }
+  function markMissionDone(id) {
+    const s = missionsDone();
+    s.add(id);
+    store.set('wp_ms_done', JSON.stringify([...s]));
+  }
+
+  function celebrateMissions() {
+    const n = missionsDone().size;
+    const best = Number(store.get('wp_ms_best') || 0);
+    if (n <= best) return;
+    store.set('wp_ms_best', String(n));
+    const total = MISSIONS.length;
+    if (n === total) { toast('🏆 All missions complete! You legend.'); burstPetals(); setTimeout(burstPetals, 500); setTimeout(burstPetals, 1000); }
+    else if (n === 5 || n === 10) { toast(`🎉 ${n} missions done!`); burstPetals(); setTimeout(burstPetals, 500); }
+  }
+
+  // Leaderboard: distinct missions per guest name, from photos shared with everyone.
+  function leaderboard() {
+    const by = new Map();
+    state.items.forEach(it => {
+      const name = (it.g || '').trim();
+      if (!it.ms || !name || !missionById(it.ms)) return;
+      const key = name.toLowerCase();
+      if (!by.has(key)) by.set(key, { name, set: new Set() });
+      by.get(key).set.add(it.ms);
+    });
+    return [...by.values()].map(x => ({ name: x.name, n: x.set.size }))
+      .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+  }
+
+  let msTab = 'list';
+  $$('.ms-seg button').forEach(b => b.onclick = () => { msTab = b.dataset.mt; renderMissions(); window.scrollTo(0, 0); });
+
+  const AV_COLORS = ['#C9A48A', '#B8A27A', '#9C7F95', '#A4917D', '#8FA18C', '#B49283', '#9A9A86', '#C08497'];
+  function avColor(name) {
+    let h = 0;
+    for (const ch of name.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return AV_COLORS[h % AV_COLORS.length];
+  }
+
+  function renderMissions() {
+    $$('.ms-seg button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mt === msTab)));
+    $('#msPanelList').hidden = msTab !== 'list';
+    $('#msPanelBoard').hidden = msTab !== 'board';
+
+    const done = missionsDone();
+    const total = MISSIONS.length;
+    $('#msDone').textContent = done.size;
+    $('#msTotal').textContent = total;
+    $('#msBar').style.width = `${total ? Math.round((done.size / total) * 100) : 0}%`;
+    const allDone = total && done.size >= total;
+    $('#msBadge').hidden = !allDone;
+
+    const name = batch.guest || store.get('wp_name');
+    const me = (name || '').trim().toLowerCase();
+    const board = leaderboard();
+    const myRank = me ? board.findIndex(r => r.name.toLowerCase() === me) : -1;
+
+    // "You're #4" chip (or a nudge to join) → opens the Leaderboard tab
+    const rank = $('#msRank');
+    rank.hidden = !!allDone;
+    rank.textContent = myRank >= 0 ? `You're #${myRank + 1}` : 'Join the leaderboard';
+    rank.onclick = () => { msTab = 'board'; renderMissions(); window.scrollTo(0, 0); };
+
+    // name card
+    $('#msNameShow').hidden = !name;
+    $('#msNameForm').hidden = !!name;
+    $('#msNameHint').hidden = !!name;
+    $('#msNameNow').textContent = name || '';
+
+    // podium (2nd · 1st · 3rd)
+    const pod = $('#msPodium');
+    pod.innerHTML = '';
+    const top = board.slice(0, 3);
+    pod.hidden = !top.length;
+    [1, 0, 2].forEach(i => {
+      const r = top[i];
+      if (!r) { pod.insertAdjacentHTML('beforeend', '<div class="pod empty"></div>'); return; }
+      const isMe = r.name.toLowerCase() === me;
+      pod.insertAdjacentHTML('beforeend', `
+        <div class="pod p${i + 1}${isMe ? ' me' : ''}">
+          <div class="av" style="background:${avColor(r.name)}">${esc(r.name.charAt(0).toUpperCase())}</div>
+          <b>${esc(r.name)}${isMe ? ' <small>(you)</small>' : ''}</b>
+          <small>${r.n} ${r.n === 1 ? 'mission' : 'missions'}</small>
+          <div class="step"><span>${i + 1}</span></div>
+        </div>`);
+    });
+
+    // everyone else
+    const list = $('#msBoardList');
+    list.innerHTML = '';
+    board.slice(3).forEach((r, k) => {
+      const isMe = r.name.toLowerCase() === me;
+      const li = document.createElement('li');
+      if (isMe) li.className = 'me';
+      li.innerHTML = `<span class="rk">${k + 4}</span><span class="av" style="background:${avColor(r.name)}">${esc(r.name.charAt(0).toUpperCase())}</span><span class="nm">${esc(r.name)}${isMe ? ' <small>(you)</small>' : ''}</span><span class="ct">${r.n}</span>`;
+      list.appendChild(li);
+    });
+    $('#msBoardEmpty').hidden = board.length > 0;
+
+    // mission cards
+    const counts = {};
+    state.items.forEach(it => { if (it.ms) counts[it.ms] = (counts[it.ms] || 0) + 1; });
+    const wrap = $('#msList');
+    wrap.innerHTML = '';
+    MISSIONS.forEach(m => {
+      const isDone = done.has(m.id);
+      const card = document.createElement('div');
+      card.className = 'ms-item' + (isDone ? ' done' : '');
+      const day = dayLabel(m);
+      const c = counts[m.id] || 0;
+      card.innerHTML = `
+        <a class="ms-open" href="#mission/${encodeURIComponent(m.id)}">
+          <span class="ms-icon">${isDone ? '<svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>' : esc(m.icon || '🎯')}</span>
+          <span class="ms-text">
+            <b>${esc(m.title)}</b>
+            <small>${esc(m.hint || '')}</small>
+            <span class="ms-meta">${day ? `<span class="ms-day">${esc(day)}</span>` : ''}<span>${c ? `${c} ${c === 1 ? 'photo' : 'photos'}` : 'No photos yet'}</span></span>
+          </span>
+        </a>
+        <button type="button" class="ms-up ${isDone ? 'again' : ''}">${isDone ? 'Add more' : 'Upload'}</button>`;
+      card.querySelector('.ms-up').onclick = () => pickFiles(m.id);
+      wrap.appendChild(card);
+    });
+  }
+  $('#msNameChange').onclick = () => {
+    $('#msNameShow').hidden = true;
+    $('#msNameForm').hidden = false;
+    const i = $('#msNameInput');
+    i.value = batch.guest || store.get('wp_name') || '';
+    i.focus();
+  };
+  $('#msNameForm').onsubmit = e => {
+    e.preventDefault();
+    const v = $('#msNameInput').value.trim();
+    $('#msNameInput').blur();
+    setBatch({ guest: v });
+    renderMissions();
+    if (v) toast(`You're on the board, ${v}!`);
+  };
+
+  let detailId = null;
+  function renderMissionDetail(id) {
+    const m = missionById(id);
+    if (!m) { location.hash = 'missions'; return; }
+    detailId = id;
+    const idx = MISSIONS.indexOf(m);
+    $('#mdNum').textContent = `Mission ${idx + 1} of ${MISSIONS.length}`;
+    $('#mdIcon').textContent = m.icon || '🎯';
+    $('#mdTitle').textContent = m.title;
+    $('#mdHint').textContent = m.hint || '';
+    const day = dayLabel(m);
+    $('#mdDay').hidden = !day;
+    $('#mdDay').textContent = day;
+
+    const items = state.items.filter(it => it.ms === id);
+    const grid = $('#mdGrid');
+    grid.innerHTML = '';
+    $('#mdEmpty').hidden = items.length > 0;
+    items.forEach((it, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'm-tile';
+      const img = new Image();
+      img.alt = '';
+      img.loading = 'lazy';
+      img.src = thumbUrl(it, 400);
+      img.onerror = () => img.remove();
+      b.appendChild(img);
+      if (it.g) b.insertAdjacentHTML('beforeend', `<span class="m-badge pub">${esc(it.g)}</span>`);
+      b.onclick = () => { state.view = items; openLightbox(i); };
+      grid.appendChild(b);
+    });
+  }
+  // Bottom bar "+ Upload": on a mission page it uploads for that mission
+  $('#bnavUpload').onclick = () => pickFiles(document.body.classList.contains('view-mission') && detailId ? detailId : null);
+
+  // keep the mission views fresh when the album list changes
+  const _refresh = refresh;
+  refresh = function () {
+    _refresh();
+    if (document.body.classList.contains('view-missions')) renderMissions();
+    if (document.body.classList.contains('view-mission') && detailId) renderMissionDetail(detailId);
+    if (document.body.classList.contains('view-home')) renderHome();
+  };
+
+  /* ================================================================ */
+  /* Updates: schedule, "happening now", announcements, push opt-in   */
+  /* ================================================================ */
+  let SCHEDULE = [];
+  function setSchedule(list) {
+    SCHEDULE = (list || []).filter(e => e && e.day && e.start && e.title).map(e => ({
+      ...e,
+      s: new Date(`${e.day}T${e.start}:00+05:30`).getTime(),
+      e2: new Date(`${e.day}T${e.end || e.start}:00+05:30`).getTime() + (e.end ? 0 : 90 * 60000)
+    })).sort((a, b) => a.s - b.s);
+  }
+  const rawSchedule = () => SCHEDULE.map(({ s, e2, ...e }) => e);
+  function demoSchedStore(list) {
+    if (list) store.set('wp_demo_sched', JSON.stringify(list));
+    try { return JSON.parse(store.get('wp_demo_sched') || 'null') || C.SCHEDULE || []; } catch (e) { return C.SCHEDULE || []; }
+  }
+  setSchedule(DEMO ? demoSchedStore() : (C.SCHEDULE || []));
+
+  // The live schedule comes from the backend (your Google Sheet); config.js is the fallback.
+  async function loadSchedule() {
+    if (DEMO) return;
+    try {
+      const r = await api({ action: 'schedule' }, 1);
+      if (Array.isArray(r.items) && r.items.length) { setSchedule(r.items); scheduleChanged(); }
+    } catch (e) { /* backend not ready → keep config.js schedule */ }
+  }
+  function scheduleChanged() {
+    renderNowCard();
+    if (document.body.classList.contains('view-updates')) renderUpdates();
+    if (document.body.classList.contains('view-home')) renderHome();
+  }
+  const fmtTime = t => new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit' }).format(t).replace(' am', ' AM').replace(' pm', ' PM');
+  const fmtDay = t => new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short' }).format(t);
+  const dayKey = t => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(t);
+  function ago(t) {
+    const m = Math.round((Date.now() - t) / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m} min ago`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `${h} hr ago`;
+    return fmtDay(t);
+  }
+
+  function nowNext() {
+    const t = Date.now();
+    return { now: SCHEDULE.find(e => e.s <= t && t < e.e2), next: SCHEDULE.find(e => e.s > t) };
+  }
+
+  function fillNow(prefix, card) {
+    const { now, next } = nowNext();
+    const e = now || next;
+    card.hidden = !e;
+    if (!e) return;
+    card.classList.toggle('live', !!now);
+    $(`#${prefix}Icon`).textContent = e.icon || '📅';
+    $(`#${prefix}Label`).textContent = now ? 'Happening now' : 'Up next';
+    $(`#${prefix}Title`).textContent = e.title;
+    const sameDay = dayKey(e.s) === dayKey(Date.now());
+    $(`#${prefix}Meta`).textContent = now
+      ? `Until ${fmtTime(e.e2)} · ${e.venue || ''}`
+      : `${sameDay ? 'Today' : fmtDay(e.s)}, ${fmtTime(e.s)} · ${e.venue || ''}`;
+  }
+
+  function renderHome() {
+    // Home = communications only: "Get updates" + announcements (+ send box for admin)
+    store.set('wp_upd_open', String(Date.now()));
+    state.ann.forEach(a => markSeen(a.id));
+    renderBellDots();
+    renderBanner();
+    $('#compose').hidden = !state.isAdmin;
+    renderPushCard();
+    renderUpdates();
+  }
+
+  function renderNowCard() {
+    if (document.body.classList.contains('view-home')) renderHome();
+    const { now, next } = nowNext();
+    const card = $('#nowCard');
+    const e = now || next;
+    card.hidden = !e;
+    if (!e) return;
+    card.classList.toggle('live', !!now);
+    $('#nowIcon').textContent = e.icon || '📅';
+    $('#nowLabel').textContent = now ? 'Happening now' : 'Up next';
+    $('#nowTitle').textContent = e.title;
+    const sameDay = dayKey(e.s) === dayKey(Date.now());
+    $('#nowMeta').textContent = now
+      ? `Until ${fmtTime(e.e2)} · ${e.venue || ''}`
+      : `${sameDay ? 'Today' : fmtDay(e.s)}, ${fmtTime(e.s)} · ${e.venue || ''}`;
+  }
+
+  /* ---------- announcements ---------- */
+  state.ann = [];
+  const FIRST_SEEN = (() => {
+    const v = Number(store.get('wp_first_seen'));
+    if (v) return v;
+    const now = Date.now();
+    store.set('wp_first_seen', String(now));
+    return now;
+  })();
+  const DEMO_ANN = () => {
+    const n = Date.now();
+    return [
+      { id: 'a2', text: 'Lunch is open in the banquet hall 🍽️ Come hungry!', t: new Date(n - 6 * 60000).toISOString() },
+      { id: 'a1', text: 'Haldi starts at 10:30 by the pool. Wear yellow 💛 and bring your phones for photos!', t: new Date(n - 3 * 3600000).toISOString() }
+    ];
+  };
+  function demoAnnStore(list) {
+    if (list) store.set('wp_demo_ann', JSON.stringify(list));
+    try { return JSON.parse(store.get('wp_demo_ann') || 'null') || DEMO_ANN(); } catch (e) { return DEMO_ANN(); }
+  }
+
+  async function loadAnnouncements() {
+    try {
+      let list;
+      if (DEMO) list = demoAnnStore();
+      else list = (await api({ action: 'updates' }, 1)).items || [];
+      state.ann = list
+        .map(a => ({ ...a, ts: new Date(a.at || a.t).getTime() }))
+        .filter(a => state.isAdmin || (a.ts <= Date.now() && a.ts >= FIRST_SEEN))
+        .sort((a, b) => b.ts - a.ts);
+    } catch (e) {
+      state.ann = []; // backend not ready yet → simply no announcements
+    }
+    renderBanner();
+    renderBellDots();
+    if (document.body.classList.contains('view-updates')) renderUpdates();
+    if (document.body.classList.contains('view-home')) renderHome();
+  }
+
+  const seen = () => { try { return new Set(JSON.parse(store.get('wp_ann_seen') || '[]')); } catch (e) { return new Set(); } };
+  function markSeen(id) { const s = seen(); s.add(id); store.set('wp_ann_seen', JSON.stringify([...s])); }
+
+  function renderBanner() {
+    const b = $('#annBanner');
+    const live = state.ann.filter(a => a.ts <= Date.now());
+    const latest = live[0];
+    const show = latest && !seen().has(latest.id) && !document.body.classList.contains('view-home')
+      && $('#sheet').hidden;
+    b.hidden = !show;
+    if (!show) return;
+    $('#annBannerText').textContent = latest.text;
+    $('#annBannerTime').textContent = `From Nupur & Aditya · ${ago(latest.ts)}`;
+    b.dataset.id = latest.id;
+  }
+  $('#annBannerClose').onclick = () => { markSeen($('#annBanner').dataset.id); renderBanner(); };
+  $('#annBanner .ann-main').addEventListener('click', () => markSeen($('#annBanner').dataset.id));
+
+  function renderBellDots() {
+    const lastOpen = Number(store.get('wp_upd_open') || 0);
+    const fresh = state.ann.some(a => a.ts <= Date.now() && a.ts > lastOpen);
+    $$('.bell-dot').forEach(d => { d.hidden = !fresh; });
+  }
+
+
+  function openUpdates() {
+    $('#schedAdd').hidden = !state.isAdmin;
+    renderUpdates();
+  }
+
+  function shareText(a) {
+    const link = `${location.origin}${location.pathname}?k=${encodeURIComponent(KEY)}`;
+    return `📣 ${a.text}\n\n📸 Share your photos: ${link}`;
+  }
+
+  function renderUpdates() {
+    // announcements
+    const list = $('#annList');
+    list.innerHTML = '';
+    $('#annEmpty').hidden = state.ann.length > 0;
+    state.ann.forEach(a => {
+      const scheduled = a.ts > Date.now();
+      const el = document.createElement('div');
+      el.className = 'ann' + (scheduled ? ' scheduled' : '');
+      el.innerHTML = `
+        <p>${esc(a.text)}</p>
+        <small>${scheduled ? `⏰ Scheduled for ${fmtDay(a.ts)}, ${fmtTime(a.ts)}` : ago(a.ts)}</small>
+        ${state.isAdmin ? `<div class="ann-actions">
+          <button type="button" class="chip-btn" data-act="copy">Copy</button>
+          <a class="chip-btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shareText(a))}">Send on WhatsApp</a>
+          <button type="button" class="chip-btn danger" data-act="del">Delete</button>
+        </div>` : ''}`;
+      if (state.isAdmin) {
+        el.querySelector('[data-act="copy"]').onclick = async () => {
+          try { await navigator.clipboard.writeText(shareText(a)); toast('Copied. Paste it in WhatsApp'); }
+          catch (e) { toast('Could not copy on this browser'); }
+        };
+        el.querySelector('[data-act="del"]').onclick = async () => {
+          if (!confirm('Delete this update?')) return;
+          try {
+            if (DEMO) demoAnnStore(demoAnnStore().filter(x => x.id !== a.id));
+            else await api({ action: 'unannounce', id: a.id }, 2);
+            loadAnnouncements();
+          } catch (e) { toast('Could not delete: ' + e.message); }
+        };
+      }
+      list.appendChild(el);
+    });
+
+    // schedule, grouped by day
+    const sched = $('#sched');
+    sched.innerHTML = '';
+    const t = Date.now();
+    let day = '';
+    let group;
+    let shown = 0;
+    SCHEDULE.forEach(e => {
+      // guests don't see items that finished before they first opened the site
+      if (!state.isAdmin && e.e2 < FIRST_SEEN) return;
+      shown++;
+      const k = dayKey(e.s);
+      if (k !== day) {
+        day = k;
+        const fn = C.ALBUMS.find(a => a.date === k);
+        group = document.createElement('div');
+        group.className = 'sched-day';
+        group.innerHTML = `<div class="sched-h"><b>${esc(fmtDay(e.s))}</b>${fn ? `<span class="ms-day">${esc(fn.label)}</span>` : ''}</div>`;
+        sched.appendChild(group);
+      }
+      const state2 = t >= e.e2 ? 'done' : t >= e.s ? 'now' : '';
+      const row = document.createElement('div');
+      row.className = 'sched-row ' + state2;
+      row.innerHTML = `
+        <span class="sched-time">${esc(fmtTime(e.s))}</span>
+        <span class="sched-ic">${esc(e.icon || '📅')}</span>
+        <span class="sched-tx"><b>${esc(e.title)}</b><small>${esc(e.venue || '')}</small></span>
+        ${state2 === 'now' ? '<span class="sched-live">Now</span>' : ''}
+        ${state.isAdmin ? '<button type="button" class="sched-edit" aria-label="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>' : ''}`;
+      if (state.isAdmin) row.querySelector('.sched-edit').onclick = () => openSchedEditor(e);
+      group.appendChild(row);
+    });
+    $('#schedEmpty').hidden = shown > 0;
+  }
+
+  async function postAnnouncement(text, at) {
+    const item = { id: 'a' + Date.now(), text, t: new Date().toISOString(), at: at || undefined };
+    if (DEMO) demoAnnStore([item].concat(demoAnnStore()));
+    else await api({ action: 'announce', text, at: at || '' }, 2);
+    loadAnnouncements();
+  }
+
+  /* ---------- schedule editor (admin) ---------- */
+  let sedItem = null; // the item being edited (null = new)
+  const istDateTime = (day, time) => new Date(`${day}T${time}:00+05:30`).getTime();
+
+  function openSchedEditor(e) {
+    sedItem = e || null;
+    const first = SCHEDULE[0];
+    $('#sedTitle').textContent = e ? 'Edit schedule item' : 'Add to schedule';
+    $('#sedIcon').value = e ? (e.icon || '') : '';
+    $('#sedName').value = e ? e.title : '';
+    $('#sedDay').value = e ? e.day : (first ? first.day : (C.ALBUMS[0] && C.ALBUMS[0].date) || '');
+    $('#sedStart').value = e ? e.start : '';
+    $('#sedEnd').value = e ? (e.end || '') : '';
+    $('#sedVenue').value = e ? (e.venue || '') : '';
+    $('#sedDelete').hidden = !e;
+    $('#sedNotify').checked = false;
+    $('#sedNotify').dataset.touched = '';
+    updateSedNotify();
+    $('#schedEditor').hidden = false;
+    document.body.classList.add('no-scroll');
+  }
+  function closeSchedEditor() {
+    $('#schedEditor').hidden = true;
+    document.body.classList.remove('no-scroll');
+  }
+  $$('[data-close-sed]').forEach(b => b.onclick = closeSchedEditor);
+
+  // The announcement guests would get for this change (or '' if nothing worth announcing).
+  function sedAnnouncement() {
+    const title = $('#sedName').value.trim();
+    const day = $('#sedDay').value, start = $('#sedStart').value;
+    if (!title || !day || !start) return '';
+    const when = istDateTime(day, start);
+    const venue = $('#sedVenue').value.trim();
+    const whenText = `${dayKey(when) === dayKey(Date.now()) ? 'today' : fmtDay(when)} at ${fmtTime(when)}`;
+    if (!sedItem) return `📅 Added to the schedule: ${title}, ${whenText}${venue ? ` · ${venue}` : ''}`;
+    const moved = sedItem.day !== day || sedItem.start !== start;
+    const placeChanged = (sedItem.venue || '') !== venue;
+    if (moved) return `⏰ Change of plan: ${title} is now ${whenText}${venue ? ` · ${venue}` : ''}`;
+    if (placeChanged && venue) return `📍 ${title} has moved to ${venue}`;
+    return '';
+  }
+  function updateSedNotify() {
+    const msg = sedAnnouncement();
+    const box = $('#sedNotify');
+    $('.sed-notify').hidden = !msg;
+    if (!box.dataset.touched) box.checked = !!msg && !!sedItem; // on by default for real changes
+    $('#sedNotifyLabel').textContent = sedItem ? 'Tell guests about this change' : 'Announce this to guests';
+    $('#sedPreview').hidden = !msg || !box.checked;
+    $('#sedPreview').textContent = msg;
+  }
+  ['#sedName', '#sedDay', '#sedStart', '#sedVenue'].forEach(sel => $(sel).addEventListener('input', updateSedNotify));
+  $('#sedNotify').addEventListener('change', () => { $('#sedNotify').dataset.touched = '1'; updateSedNotify(); });
+
+  async function saveSchedule(list) {
+    setSchedule(list);
+    if (DEMO) demoSchedStore(rawSchedule());
+    else await api({ action: 'saveSchedule', items: rawSchedule() }, 2);
+    scheduleChanged();
+  }
+
+  $('#sedForm').onsubmit = async ev => {
+    ev.preventDefault();
+    const item = {
+      id: sedItem ? sedItem.id : 'e' + Date.now(),
+      icon: $('#sedIcon').value.trim() || '📅',
+      title: $('#sedName').value.trim(),
+      day: $('#sedDay').value,
+      start: $('#sedStart').value,
+      end: $('#sedEnd').value || undefined,
+      venue: $('#sedVenue').value.trim()
+    };
+    if (item.end && item.end <= item.start) { toast('End time should be after the start time'); return; }
+    const announce = $('#sedNotify').checked ? sedAnnouncement() : '';
+    const list = rawSchedule().filter(e => e.id !== item.id).concat(item);
+    try {
+      await saveSchedule(list);
+      if (announce) await postAnnouncement(announce);
+      closeSchedEditor();
+      toast(announce ? 'Saved and guests notified' : 'Schedule updated');
+    } catch (e) { toast('Could not save: ' + e.message); }
+  };
+
+  $('#sedDelete').onclick = async () => {
+    if (!sedItem) return;
+    const tell = confirm(`Remove "${sedItem.title}" from the schedule?\n\nOK = remove and tell guests it's cancelled\nCancel = keep it`);
+    if (!tell) return;
+    try {
+      await saveSchedule(rawSchedule().filter(e => e.id !== sedItem.id));
+      await postAnnouncement(`❌ ${sedItem.title} (${fmtDay(sedItem.s)}, ${fmtTime(sedItem.s)}) has been cancelled`);
+      closeSchedEditor();
+      toast('Removed and guests notified');
+    } catch (e) { toast('Could not remove: ' + e.message); }
+  };
+  $('#schedAdd').onclick = () => openSchedEditor(null);
+
+  /* ---------- compose (admin) ---------- */
+  $('#composeLater').onchange = e => { $('#composeAt').hidden = !e.target.checked; };
+  $('#composeSend').onclick = async () => {
+    const text = $('#composeText').value.trim();
+    if (!text) { toast('Write a message first'); return; }
+    let at = '';
+    if ($('#composeLater').checked) {
+      const v = $('#composeAt').value;
+      if (!v) { toast('Pick a time'); return; }
+      at = new Date(`${v}:00+05:30`).toISOString();
+    }
+    try {
+      await postAnnouncement(text, at);
+      $('#composeText').value = '';
+      $('#composeLater').checked = false;
+      $('#composeAt').hidden = true;
+      toast(at ? 'Update scheduled' : 'Update sent');
+    } catch (e) { toast('Could not send: ' + e.message); }
+  };
+
+  /* ---------- push opt-in ---------- */
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  function renderPushCard() {
+    const supported = 'Notification' in window;
+    const on = supported && Notification.permission === 'granted';
+    const blocked = supported && Notification.permission === 'denied';
+    $('#pushCard').classList.toggle('on', on);
+    $('#pushTitle').textContent = on ? 'Updates are on' : 'Get updates on your phone';
+    $('#pushSub').textContent = on ? "We'll notify you when things start."
+      : blocked ? 'Notifications are blocked. Turn them on in your browser settings.'
+      : "Lunch, haldi, pickups. We'll let you know when things start.";
+    $('#pushBtn').hidden = on || blocked;
+    $('#pushBtn').textContent = isIOS && !isStandalone ? 'How to turn on' : 'Turn on';
+  }
+  $('#pushBtn').onclick = async () => {
+    if (isIOS && !isStandalone) { $('#iosGuide').hidden = false; return; }
+    if (!('Notification' in window)) { toast("This browser can't show notifications"); return; }
+    const res = await Notification.requestPermission();
+    // TODO(backend): register this phone with Firebase Cloud Messaging so announcements arrive as notifications.
+    renderPushCard();
+    if (res === 'granted') toast("You're all set");
+  };
+  $('#iosGuideClose').onclick = () => { $('#iosGuide').hidden = true; };
+
+  /* ================================================================ */
   /* Lightbox                                                         */
   /* ================================================================ */
   const lb = $('#lightbox');
@@ -560,7 +1171,9 @@
       [1, -1].forEach(d => { const n = v[(state.lbIndex + d + v.length) % v.length]; if (n && !n.v) new Image().src = fullUrl(n); });
     }
     const album = C.ALBUMS.find(a => a.id === it.a);
-    $('#lbCaption').innerHTML = it.g ? `<b>${esc(it.g)}</b>` : '<span>Shared by a guest</span>';
+    const lbMs = it.ms && missionById(it.ms);
+    $('#lbCaption').innerHTML = (it.g ? `<b>${esc(it.g)}</b>` : '<span>Shared by a guest</span>') +
+      (lbMs ? `<br><span class="lb-ms">${esc(lbMs.icon || '🎯')} ${esc(lbMs.title)}</span>` : '');
     $('#lbCount').textContent = `${state.lbIndex + 1} / ${v.length}`;
     $('#lbDownload').href = downloadUrl(it);
     $('#lbDelete').hidden = !(state.isAdmin || isMine(it));
@@ -645,7 +1258,12 @@
 
   const batch = { guest: store.get('wp_name'), private: true }; // default: only the couple sees uploads
 
-  function pickFiles() { $('#fileInput').click(); }
+  // mission: id when uploading for a mission, otherwise a normal upload
+  let missionCtx = null;
+  function pickFiles(mission) {
+    missionCtx = typeof mission === 'string' ? mission : null;
+    $('#fileInput').click();
+  }
 
   $('#fileInput').addEventListener('change', e => {
     const files = [...e.target.files];
@@ -680,6 +1298,9 @@
   }
 
   function renderExtras() {
+    const ms = batch.mission && missionById(batch.mission);
+    $('#msRow').hidden = !ms;
+    if (ms) $('#msRowTitle').textContent = ms.title;
     $$('#visSeg button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.vis === 'private') === batch.private)));
     const hasName = !!batch.guest;
     $('#nameShow').hidden = !hasName;
@@ -716,6 +1337,8 @@
 
   function doneText(n) {
     const w = n === 1 ? 'photo' : 'photos';
+    const ms = batch.mission && missionById(batch.mission);
+    if (ms) return batch.private ? `${n} ${w} sent privately for “${ms.title}”` : `Mission done! ${n} ${w} added to “${ms.title}”`;
     return batch.private ? `${n} ${w} sent privately to Nupur & Aditya` : `${n} ${w} added to the album`;
   }
 
@@ -755,15 +1378,16 @@
     if (!jobs.some(isActive)) {
       jobs = [];
       $('#queue').innerHTML = '';
-      batch.private = true;
+      batch.private = !missionCtx; // missions are social → Everyone; normal uploads → Private
     }
+    batch.mission = missionCtx;
     const max = C.MAX_FILE_MB * 1024 * 1024;
     let added = 0;
     files.forEach(f => {
       const mime = guessMime(f);
       if (!/^(image|video)\//.test(mime) || f.size === 0) return;
       if (f.size > max) { toast(`${f.name} is larger than ${C.MAX_FILE_MB} MB and was skipped`); return; }
-      const job = { file: f, mime, album: null, guest: null, private: false, item: null, id: null, loaded: 0, status: 'queued', el: null, url: URL.createObjectURL(f) };
+      const job = { file: f, mime, mission: missionCtx, album: null, guest: null, private: false, item: null, id: null, loaded: 0, status: 'queued', el: null, url: URL.createObjectURL(f) };
       job.el = queueEl(job);
       jobs.push(job);
       added++;
@@ -867,13 +1491,138 @@
       : doneText(done);
     $('#doneActions').hidden = false;
     $('.keep-open').hidden = true;
+    $('#seeAlbum').textContent = 'Go to album';
+    if (document.body.classList.contains('view-mine')) loadMine();
+    if (document.body.classList.contains('view-missions')) renderMissions();
+    celebrateMissions();
     if (!failed) burstPetals();
   }
-  $('#addMore').onclick = pickFiles;
+  $('#addMore').onclick = () => pickFiles(batch.mission || null);
   $('#seeAlbum').onclick = () => {
+    const dest = batch.mission ? 'mission/' + batch.mission : (batch.private ? 'mine' : 'album');
     closeSheet();
-    state.album = 'all'; layout(true);
-    setTimeout(() => { if (location.hash !== '#album') location.hash = 'album'; else layout(true); }, 150);
+    state.album = 'all';
+    setTimeout(() => {
+      if (location.hash !== '#' + dest) location.hash = dest;
+      else if (dest === 'album') layout(true); else if (dest === 'mine') loadMine(); else route();
+    }, 150);
+  };
+
+  /* ================================================================ */
+  /* My uploads: see, re-share or delete what this phone uploaded      */
+  /* ================================================================ */
+  const demoMine = [];
+  const mine = { items: [], sel: new Set() };
+
+  async function loadMine() {
+    $('#mineLoading').hidden = false;
+    $('#mineGrid').innerHTML = '';
+    $('#mineEmpty').hidden = true;
+    try {
+      const r = DEMO ? { items: demoMine.slice() } : await api({ action: 'mine' }, 2);
+      mine.items = r.items || [];
+      mine.sel.clear();
+      renderMine();
+    } catch (e) {
+      toast('Could not load your uploads: ' + e.message);
+    } finally {
+      $('#mineLoading').hidden = true;
+    }
+  }
+
+  function renderMine() {
+    const grid = $('#mineGrid');
+    grid.innerHTML = '';
+    $('#mineEmpty').hidden = mine.items.length > 0;
+    mine.items.forEach(it => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'm-tile' + (mine.sel.has(it.id) ? ' sel' : '');
+      const src = state.local.get(it.id) || it.th || (it.p ? '' : thumbUrl(it, 400));
+      if (src && !(it.v && state.local.has(it.id))) {
+        const img = new Image();
+        img.alt = '';
+        img.loading = 'lazy';
+        img.src = src;
+        img.onerror = () => img.remove();
+        b.appendChild(img);
+      } else if (it.v && state.local.has(it.id)) {
+        b.insertAdjacentHTML('beforeend', `<video muted playsinline preload="metadata" src="${state.local.get(it.id)}#t=0.1"></video>`);
+      }
+      b.insertAdjacentHTML('beforeend', it.p
+        ? '<span class="m-badge priv"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>Private</span>'
+        : '<span class="m-badge pub"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 017.5-2"/></svg>Everyone</span>');
+      if (it.v) b.insertAdjacentHTML('beforeend', '<span class="m-vid">VIDEO</span>');
+      b.onclick = () => {
+        if (mine.sel.has(it.id)) mine.sel.delete(it.id); else mine.sel.add(it.id);
+        b.classList.toggle('sel', mine.sel.has(it.id));
+        updateMineUI();
+      };
+      grid.appendChild(b);
+    });
+    updateMineUI();
+  }
+
+  function updateMineUI() {
+    const n = mine.sel.size;
+    $('#mineTitle').textContent = n ? `${n} selected` : 'Our album';
+    ['#minePublic', '#minePrivate', '#mineDelete'].forEach(s => { $(s).disabled = !n; });
+    const all = mine.items.length && n === mine.items.length;
+    $('#mineAll').textContent = all ? 'Clear' : 'Select all';
+    $('#mineAll').hidden = !mine.items.length;
+    $('.mine-hint').hidden = !mine.items.length; // nothing to select yet → no hint
+    // Nothing selected → the normal "Upload photos" button; something selected → actions.
+    $('#mineBar').hidden = !n;
+    document.body.classList.toggle('mine-selecting', n > 0);
+  }
+
+  $('#mineCancel').onclick = () => { mine.sel.clear(); renderMine(); };
+  $('#mineAll').onclick = () => {
+    const all = mine.items.length && mine.sel.size === mine.items.length;
+    mine.sel = new Set(all ? [] : mine.items.map(i => i.id));
+    renderMine();
+  };
+
+  async function setMineAccess(makePrivate) {
+    const ids = [...mine.sel];
+    if (!ids.length) return;
+    document.body.classList.add('busy');
+    try {
+      if (!DEMO) await api({ action: 'retag', ids, private: makePrivate }, 2);
+      mine.items.forEach(it => { if (ids.includes(it.id)) it.p = makePrivate ? 1 : 0; });
+      demoMine.forEach(it => { if (ids.includes(it.id)) it.p = makePrivate ? 1 : 0; });
+      mine.sel.clear();
+      renderMine();
+      toast(makePrivate ? 'Private: only Nupur & Aditya can see these' : 'Everyone can now see these in the album');
+      if (!DEMO) loadItems(true);
+    } catch (e) {
+      toast('Could not update: ' + e.message);
+    } finally {
+      document.body.classList.remove('busy');
+    }
+  }
+  $('#minePublic').onclick = () => setMineAccess(false);
+  $('#minePrivate').onclick = () => setMineAccess(true);
+
+  $('#mineDelete').onclick = async () => {
+    const ids = [...mine.sel];
+    if (!ids.length || !confirm(`Delete ${ids.length} ${ids.length === 1 ? 'photo' : 'photos'}? This can't be undone from here.`)) return;
+    document.body.classList.add('busy');
+    let failed = 0;
+    for (const id of ids) {
+      try {
+        await api({ action: 'delete', id }, 2);
+        mine.items = mine.items.filter(i => i.id !== id);
+        state.items = state.items.filter(i => i.id !== id);
+        const k = demoMine.findIndex(i => i.id === id);
+        if (k >= 0) demoMine.splice(k, 1);
+      } catch (e) { failed++; }
+    }
+    document.body.classList.remove('busy');
+    mine.sel.clear();
+    renderMine();
+    refresh();
+    toast(failed ? `Deleted ${ids.length - failed}, ${failed} failed` : `Deleted ${ids.length} ${ids.length === 1 ? 'photo' : 'photos'}`);
   };
 
   async function uploadOne(job) {
@@ -892,7 +1641,7 @@
     }
 
     const { uploadUrl } = await api({
-      action: 'start', album: job.album, guest: job.guest, name: f.name,
+      action: 'start', album: job.album, mission: job.mission || '', guest: job.guest, name: f.name,
       size: f.size, mimeType: job.mime, origin: location.origin
     });
 
@@ -910,14 +1659,17 @@
       file = await uploadProxy(uploadUrl, f, progress);
     }
     if (!file || !file.id) throw new Error('Upload did not finish');
-    await api({ action: 'finalize', id: file.id, guest: job.guest, private: job.private, name: f.name, width: dims.w, height: dims.h });
+    await api({ action: 'finalize', id: file.id, guest: job.guest, private: job.private, mission: job.mission || '', name: f.name, width: dims.w, height: dims.h });
     addMine(file.id, job, dims);
   }
 
   function addMine(id, job, dims) {
     job.id = id;
+    store.set('wp_uploaded', '1');
+    if (DEMO) demoMine.unshift({ id, g: job.guest, ms: job.mission || '', v: job.mime.startsWith('video/') ? 1 : 0, w: dims.w, h: dims.h, p: job.private ? 1 : 0 });
+    if (job.mission) markMissionDone(job.mission);
     state.local.set(id, job.url);
-    job.item = { id, a: job.album, g: job.guest, v: job.mime.startsWith('video/') ? 1 : 0, t: new Date().toISOString(), w: dims.w, h: dims.h };
+    job.item = { id, a: job.album, ms: job.mission || '', m: 1, g: job.guest, v: job.mime.startsWith('video/') ? 1 : 0, t: new Date().toISOString(), w: dims.w, h: dims.h };
     if (!job.private) { state.items.unshift(job.item); refresh(); }
   }
 
@@ -1034,7 +1786,7 @@
       if (!demoApi.items) {
         demoApi.items = await Promise.all(DEMO_ITEMS.map(async ([src, a, g, w, h], i) => {
           if (!w) { const d = await getDims({ mime: 'image/', url: src }); w = d.w; h = d.h; }
-          return { id: 'demo' + i, src, a, g, v: 0, w, h, t: '' };
+          return { id: 'demo' + i, src, a, g, v: 0, w, h, t: '', ms: i % 3 === 2 ? '' : 'm' + String((i % 9) + 1).padStart(2, '0') };
         }));
       }
       return { ok: true, items: demoApi.items };

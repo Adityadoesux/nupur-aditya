@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611151551">
+<link rel="stylesheet" href="style.css?v=202611152204">
 </head>
 <body>
 
@@ -41,19 +41,98 @@
     <header class="hero">
       <span class="mono" role="img" aria-label="Nupur and Aditya"></span>
       <h1 class="headline">Help us remember<br><em>every moment</em></h1>
+      <a class="now-card" id="nowCard" href="#schedule" hidden>
+        <span class="now-ic" id="nowIcon"></span>
+        <span class="now-tx"><small id="nowLabel"></small><b id="nowTitle"></b><span id="nowMeta"></span></span>
+        <svg class="now-go" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+      </a>
     </header>
+  </section>
+
+  <!-- Home (inside the app, from the bottom bar): what's going on right now -->
+  <section id="home" class="home-wrap">
+    <div class="album-bar">
+      <span></span>
+      <h2 class="album-title">Nupur &amp; Aditya</h2>
+      <span class="album-right"><span class="mono" aria-hidden="true"></span></span>
+    </div>
+
+
+
+    <div class="up-card push-card" id="pushCard">
+      <span class="push-ic">🔔</span>
+      <div class="push-tx">
+        <b id="pushTitle">Get updates on your phone</b>
+        <small id="pushSub">Lunch, haldi, pickups. We'll let you know when things start.</small>
+      </div>
+      <button type="button" class="btn btn-primary push-btn" id="pushBtn">Turn on</button>
+    </div>
+    <div class="up-card ios-guide" id="iosGuide" hidden>
+      <b>On iPhone, add this page to your Home Screen first</b>
+      <ol>
+        <li>Tap the <b>Share</b> button <span class="ios-share">⬆︎</span> at the bottom of Safari</li>
+        <li>Scroll and tap <b>Add to Home Screen</b></li>
+        <li>Open the album from the new icon on your Home Screen, then tap <b>Turn on</b> here</li>
+      </ol>
+      <button type="button" class="link-btn" id="iosGuideClose">Got it</button>
+    </div>
+
+    <div class="up-card compose" id="compose" hidden>
+      <b class="compose-title">Send an update</b>
+      <textarea id="composeText" class="input" rows="3" maxlength="240" placeholder="Lunch is open in the banquet hall"></textarea>
+      <div class="compose-row">
+        <label class="compose-when"><input type="checkbox" id="composeLater"> Schedule for later</label>
+        <input type="datetime-local" id="composeAt" class="input" hidden>
+      </div>
+      <button type="button" class="btn btn-primary" id="composeSend">Send update</button>
+    </div>
+
+    <h3 class="up-h">Updates from Nupur &amp; Aditya</h3>
+    <div class="ann-list" id="annList"></div>
+    <p class="up-empty" id="annEmpty">No updates yet. We'll post here when things start.</p>
+  </section>
+
+
+
+  <!-- Updates: announcements from the couple + the full schedule -->
+  <section id="updates" class="updates-wrap">
+    <div class="album-bar">
+      <span></span>
+      <h2 class="album-title">Schedule</h2>
+      <span class="album-right"><span class="mono" aria-hidden="true"></span></span>
+    </div>
+
+
+    <p class="sched-note">All times are India time.</p>
+    <button type="button" class="btn btn-secondary sched-add" id="schedAdd" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add to schedule
+    </button>
+    <div class="sched" id="sched"></div>
+    <p class="up-empty" id="schedEmpty" hidden>That's everything. See you at the next one!</p>
   </section>
 
   <section id="gallery" class="gallery-wrap">
     <div class="album-bar">
-      <a class="icon-btn album-back" href="#" aria-label="Back to home">
-        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
-      </a>
+      <span></span>
       <h2 class="album-title" id="albumTitle">Our album</h2>
       <span class="album-right">
         <span class="mono" aria-hidden="true"></span>
         <button type="button" class="sel-toggle" id="selToggle" hidden>Select</button>
       </span>
+    </div>
+    <div class="seg album-seg" aria-label="Album view">
+      <a href="#album" data-a="album">All photos</a>
+      <a href="#mine" data-a="mine">My uploads</a>
+    </div>
+    <div class="up-card share-card album-share">
+      <span class="share-ic">📸</span>
+      <div class="share-tx">
+        <b>Share your photos with us</b>
+        <small>We'd love to see the day through your camera.</small>
+      </div>
+      <button type="button" class="btn btn-primary share-btn" data-open-upload>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Upload photos
+      </button>
     </div>
     <nav class="tabs" id="tabs" aria-label="Albums"></nav>
     <div id="newPill" class="new-pill" hidden></div>
@@ -63,6 +142,106 @@
     </div>
     <div id="loading" class="loading"><span></span><span></span><span></span></div>
   </section>
+
+  <!-- Missions: a list of fun photo tasks + leaderboard -->
+  <section id="missions" class="missions-wrap">
+    <div class="album-bar">
+      <span></span>
+      <h2 class="album-title">Missions</h2>
+      <span class="album-right"><span class="mono" aria-hidden="true"></span></span>
+    </div>
+    <div class="seg ms-seg" role="tablist" aria-label="Missions view">
+      <button type="button" role="tab" data-mt="list" aria-selected="true">Missions</button>
+      <button type="button" role="tab" data-mt="board" aria-selected="false">Leaderboard</button>
+    </div>
+
+    <div id="msPanelList">
+      <div class="ms-card-top">
+        <div class="ms-progress">
+          <div class="ms-progress-row">
+            <span><b id="msDone">0</b> of <span id="msTotal">15</span> done</span>
+            <button type="button" class="ms-rank" id="msRank" hidden></button>
+            <span id="msBadge" class="ms-badge" hidden>🏆 All done!</span>
+          </div>
+          <div class="bar"><i id="msBar"></i></div>
+        </div>
+      </div>
+      <div class="ms-list" id="msList"></div>
+    </div>
+
+    <div id="msPanelBoard" hidden>
+      <div class="ms-card-top ms-name-card">
+        <p class="ms-name-hint" id="msNameHint">Add your name to appear on the leaderboard.</p>
+        <div class="ms-name" id="msNameShow" hidden>Playing as <b id="msNameNow"></b> <button type="button" class="link-btn" id="msNameChange">Change</button></div>
+        <form class="name-form" id="msNameForm">
+          <input id="msNameInput" class="input" maxlength="40" placeholder="Your name" autocomplete="name" enterkeyhint="done">
+          <button class="btn btn-secondary" type="submit">Save</button>
+        </form>
+      </div>
+      <div class="podium" id="msPodium"></div>
+      <ol class="ms-board-list" id="msBoardList"></ol>
+      <p class="ms-board-empty" id="msBoardEmpty">No one on the board yet. Finish a mission to be first!</p>
+    </div>
+  </section>
+
+  <!-- One mission: everyone's photos for it -->
+  <section id="missionDetail" class="mission-wrap">
+    <div class="album-bar">
+      <a class="icon-btn album-back" href="#missions" aria-label="Back">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </a>
+      <h2 class="album-title" id="mdNum">Mission</h2>
+      <span class="album-right"><span class="mono" aria-hidden="true"></span></span>
+    </div>
+    <div class="md-head">
+      <span class="md-icon" id="mdIcon"></span>
+      <h3 id="mdTitle"></h3>
+      <p id="mdHint"></p>
+      <span class="ms-day" id="mdDay" hidden></span>
+    </div>
+    <div class="mine-grid" id="mdGrid"></div>
+    <p class="empty-mine" id="mdEmpty" hidden>No photos for this mission yet. Be the first!</p>
+  </section>
+
+  <!-- My uploads: everything this phone uploaded, private ones included -->
+  <section id="mine" class="mine-wrap">
+    <div class="album-bar">
+      <span></span>
+      <h2 class="album-title" id="mineTitle">Our album</h2>
+      <span class="album-right"><span class="mono" aria-hidden="true"></span></span>
+    </div>
+    <div class="seg album-seg" aria-label="Album view">
+      <a href="#album" data-a="album">All photos</a>
+      <a href="#mine" data-a="mine">My uploads</a>
+    </div>
+    <div class="mine-head">
+      <p class="mine-hint">Only you can see these. Tap to select.</p>
+      <button type="button" class="link-btn" id="mineAll" hidden>Select all</button>
+    </div>
+    <div class="mine-grid" id="mineGrid"></div>
+    <div class="empty-mine" id="mineEmpty" hidden>
+      <p>You haven't uploaded anything from this phone yet.</p>
+      <button type="button" class="btn btn-primary btn-lg mine-empty-cta" data-open-upload>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Upload photos
+      </button>
+    </div>
+    <div class="loading" id="mineLoading" hidden><span></span><span></span><span></span></div>
+  </section>
+
+  <div class="sel-bar mine-bar" id="mineBar" hidden>
+    <button type="button" class="link-btn" id="mineCancel">Cancel</button>
+    <div class="sel-actions">
+      <button type="button" class="sel-act" id="minePublic" disabled>
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 017.5-2"/></svg><span>Everyone</span>
+      </button>
+      <button type="button" class="sel-act" id="minePrivate" disabled>
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg><span>Private</span>
+      </button>
+      <button type="button" class="sel-act danger" id="mineDelete" disabled>
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg><span>Delete</span>
+      </button>
+    </div>
+  </div>
 
   <footer class="foot">
     <a href="/" aria-label="Wedding invitation"><span class="mono" aria-hidden="true"></span></a>
@@ -99,6 +278,24 @@
     </button>
     <a class="btn btn-secondary btn-block cta-view" href="#album">View album</a>
   </div>
+  <!-- Bottom bar: only on inner pages (album, missions, my uploads) -->
+  <nav class="bnav" aria-label="Main">
+    <a class="bn" data-n="home" href="#home">
+      <span class="bn-ic"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/></svg><i class="bell-dot" hidden></i></span><span>Home</span>
+    </a>
+    <a class="bn" data-n="album" href="#album">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg><span>Album</span>
+    </a>
+    <button type="button" class="bn bn-up" id="bnavUpload">
+      <span class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>Upload photos</span>
+    </button>
+    <a class="bn" data-n="missions" href="#missions">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/></svg><span>Missions</span>
+    </a>
+    <a class="bn" data-n="updates" href="#schedule">
+      <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>Schedule</span>
+    </a>
+  </nav>
 </main>
 
 <!-- Upload sheet -->
@@ -116,6 +313,10 @@
     <ul id="queue" class="queue"></ul>
 
     <div class="extras">
+      <div class="extra-row" id="msRow" hidden>
+        <span class="extra-label">Mission</span>
+        <span class="extra-value"><b id="msRowTitle"></b></span>
+      </div>
       <span class="extra-label">Who can see these?</span>
       <div class="vis" id="visSeg" role="group" aria-label="Who can see these photos">
         <button type="button" data-vis="private" aria-pressed="true">Only Nupur &amp; Aditya</button>
@@ -135,9 +336,43 @@
     <p class="sheet-note keep-open">Keep this screen open until it's done</p>
     <div class="sheet-actions" id="doneActions" hidden>
       <button class="btn btn-secondary" id="addMore">Add more</button>
-      <button class="btn btn-primary" id="seeAlbum">View album</button>
+      <button class="btn btn-primary" id="seeAlbum">Go to album</button>
     </div>
   </div>
+</div>
+
+<!-- Admin: add / edit a schedule item -->
+<div id="schedEditor" class="sheet" hidden>
+  <div class="sheet-backdrop" data-close-sed></div>
+  <div class="sheet-panel sed-panel" role="dialog" aria-modal="true" aria-labelledby="sedTitle">
+    <div class="sheet-grab"></div>
+    <button class="icon-btn sheet-x" data-close-sed aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 class="sheet-title" id="sedTitle">Edit schedule item</h2>
+    <form id="sedForm" class="sed-form">
+      <div class="sed-row">
+        <label class="sed-f sed-icon"><span>Icon</span><input id="sedIcon" class="input" maxlength="4" placeholder="🌼"></label>
+        <label class="sed-f sed-grow"><span>What</span><input id="sedName" class="input" maxlength="60" placeholder="Haldi" required></label>
+      </div>
+      <label class="sed-f"><span>Date</span><input id="sedDay" class="input" type="date" required></label>
+      <div class="sed-row">
+        <label class="sed-f sed-grow"><span>Starts</span><input id="sedStart" class="input" type="time" required></label>
+        <label class="sed-f sed-grow"><span>Ends <em>optional</em></span><input id="sedEnd" class="input" type="time"></label>
+      </div>
+      <label class="sed-f"><span>Where</span><input id="sedVenue" class="input" maxlength="80" placeholder="Poolside lawn"></label>
+      <label class="sed-notify"><input type="checkbox" id="sedNotify"> <span id="sedNotifyLabel">Tell guests about this change</span></label>
+      <p class="sed-preview" id="sedPreview" hidden></p>
+      <div class="sed-actions">
+        <button type="button" class="btn btn-secondary sed-del" id="sedDelete">Delete</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Latest announcement, shown on top of the page until dismissed -->
+<div class="ann-banner" id="annBanner" hidden>
+  <a class="ann-main" href="#home"><span class="ann-ic">📣</span><span class="ann-tx"><b id="annBannerText"></b><small id="annBannerTime"></small></span></a>
+  <button type="button" class="ann-x" id="annBannerClose" aria-label="Dismiss"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </div>
 
 <!-- Gallery picker: opened directly by the Upload button -->
@@ -170,7 +405,7 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="config.js?v=202611151551"></script>
-<script src="app.js?v=202611151551"></script>
+<script src="config.js?v=202611152204"></script>
+<script src="app.js?v=202611152204"></script>
 </body>
 </html>
