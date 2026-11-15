@@ -643,7 +643,7 @@
     return pick;
   }
 
-  const batch = { guest: store.get('wp_name'), private: false };
+  const batch = { guest: store.get('wp_name'), private: true }; // default: only the couple sees uploads
 
   function pickFiles() { $('#fileInput').click(); }
 
@@ -755,7 +755,7 @@
     if (!jobs.some(isActive)) {
       jobs = [];
       $('#queue').innerHTML = '';
-      batch.private = false;
+      batch.private = true;
     }
     const max = C.MAX_FILE_MB * 1024 * 1024;
     let added = 0;
