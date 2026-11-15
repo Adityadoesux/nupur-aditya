@@ -904,6 +904,7 @@
     } catch (e) {
       state.ann = []; // backend not ready yet → simply no announcements
     }
+    state.annLoaded = true;
     renderBanner();
     renderBellDots();
     if (document.body.classList.contains('view-updates')) renderUpdates();
@@ -951,7 +952,9 @@
     // announcements
     const list = $('#annList');
     list.innerHTML = '';
-    $('#annEmpty').hidden = state.ann.length > 0;
+    // Until the first load finishes, show placeholder cards instead of the empty state.
+    $('#annLoading').hidden = !!state.annLoaded;
+    $('#annEmpty').hidden = !state.annLoaded || state.ann.length > 0;
     if (!state.ann.length) {
       // empty state: point to what's coming up next on the schedule
       const { now, next } = nowNext();
@@ -1994,6 +1997,47 @@
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     for (let i = 0; i < 36; i++) setTimeout(() => petal(true), i * 40);
   }
+
+  /* ================================================================ */
+  /* Loading state: buttons that wait on the server show a spinner and  */
+  /* ignore extra taps until the work is done (no double sends).        */
+  /* ================================================================ */
+  function guardButton(sel, label) {
+    const el = $(sel);
+    if (!el) return;
+    const isForm = el.tagName === 'FORM';
+    const btn = isForm ? el.querySelector('[type="submit"]') : el;
+    const orig = isForm ? el.onsubmit : el.onclick;
+    if (!orig || !btn) return;
+    const wrapped = async function (e) {
+      if (btn.dataset.busy) { if (e) e.preventDefault(); return; }
+      btn.dataset.busy = '1';
+      const html = btn.innerHTML;
+      btn.classList.add('is-loading');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="btn-spin" aria-hidden="true"></span><span>${esc(label)}</span>`;
+      try { return await orig.call(this, e); }
+      finally {
+        btn.innerHTML = html;
+        btn.classList.remove('is-loading');
+        btn.disabled = false;
+        delete btn.dataset.busy;
+        updateSelUI && sel.startsWith('#sel') && updateSelUI();
+        sel.startsWith('#mine') && updateMineUI();
+      }
+    };
+    if (isForm) el.onsubmit = wrapped; else el.onclick = wrapped;
+  }
+  guardButton('#composeSend', 'Sending…');
+  guardButton('#pushBtn', 'Turning on…');
+  guardButton('#sedForm', 'Saving…');
+  guardButton('#sedDelete', 'Removing…');
+  guardButton('#minePublic', 'Updating…');
+  guardButton('#minePrivate', 'Updating…');
+  guardButton('#mineDelete', 'Deleting…');
+  guardButton('#selDownload', 'Preparing…');
+  guardButton('#selHide', 'Hiding…');
+  guardButton('#selDelete', 'Deleting…');
 
   init();
 })();

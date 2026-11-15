@@ -1029,3 +1029,22 @@ body.view-updates .bnav, body.view-home .bnav {
 .ann-empty-tx small { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); }
 .ann-empty-tx b { font-size: 15px; font-weight: 600; }
 .ann-empty-tx span { font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Loading state on buttons */
+.is-loading { cursor: progress !important; opacity: .85; }
+.btn.is-loading, .sel-act.is-loading { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.sel-act.is-loading { flex-direction: column; gap: 4px; }
+.btn-spin {
+  width: 16px; height: 16px; border-radius: 50%; flex: none;
+  border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite;
+}
+.sel-act .btn-spin { width: 20px; height: 20px; }
+
+
+/* ---------- Announcements loading skeleton ---------- */
+.ann-loading[hidden] { display: none; }
+.ann-skel { display: flex; gap: 12px; align-items: flex-start; }
+.sk { display: block; border-radius: 8px; background: linear-gradient(90deg, #F3ECE6 25%, #FBF6F2 50%, #F3ECE6 75%); background-size: 200% 100%; animation: shimmer 1.3s linear infinite; }
+.sk-ic { flex: none; width: 40px; height: 40px; border-radius: 12px; }
+.sk-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 3px; }
+.sk-l1 { height: 12px; width: 92%; } .sk-l2 { height: 12px; width: 70%; } .sk-l3 { height: 10px; width: 34%; }
