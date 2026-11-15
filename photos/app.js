@@ -887,6 +887,11 @@
     try { return JSON.parse(store.get('wp_demo_ann') || 'null') || DEMO_ANN(); } catch (e) { return DEMO_ANN(); }
   }
 
+  // Guests see everything from the start (midnight, India time) of the day they first opened the site.
+  function firstDayStart() {
+    return new Date(`${dayKey(FIRST_SEEN)}T00:00:00+05:30`).getTime();
+  }
+
   async function loadAnnouncements() {
     try {
       let list;
@@ -894,7 +899,7 @@
       else list = (await api({ action: 'updates' }, 1)).items || [];
       state.ann = list
         .map(a => ({ ...a, ts: new Date(a.at || a.t).getTime() }))
-        .filter(a => state.isAdmin || (a.ts <= Date.now() && a.ts >= FIRST_SEEN))
+        .filter(a => state.isAdmin || (a.ts <= Date.now() && a.ts >= firstDayStart()))
         .sort((a, b) => b.ts - a.ts);
     } catch (e) {
       state.ann = []; // backend not ready yet → simply no announcements
@@ -1003,7 +1008,7 @@
     let shown = 0;
     SCHEDULE.forEach(e => {
       // guests don't see items that finished before they first opened the site
-      if (!state.isAdmin && e.e2 < FIRST_SEEN) return;
+      if (!state.isAdmin && e.e2 < firstDayStart()) return;
       shown++;
       const k = dayKey(e.s);
       if (k !== day) {
