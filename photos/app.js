@@ -947,6 +947,21 @@
     const list = $('#annList');
     list.innerHTML = '';
     $('#annEmpty').hidden = state.ann.length > 0;
+    if (!state.ann.length) {
+      // empty state: point to what's coming up next on the schedule
+      const { now, next } = nowNext();
+      const e = now || next;
+      $('#annEmptyNext').hidden = !e;
+      if (e) {
+        $('#annEmptyIc').textContent = e.icon || '📅';
+        $('#annEmptyLabel').textContent = now ? 'Happening now' : 'Up next';
+        $('#annEmptyTitle').textContent = e.title;
+        const sameDay = dayKey(e.s) === dayKey(Date.now());
+        $('#annEmptyMeta').textContent = now
+          ? `Until ${fmtTime(e.e2)} · ${e.venue || ''}`
+          : `${sameDay ? 'Today' : fmtDay(e.s)}, ${fmtTime(e.s)} · ${e.venue || ''}`;
+      }
+    }
     state.ann.forEach(a => {
       const scheduled = a.ts > Date.now();
       const el = document.createElement('div');
