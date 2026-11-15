@@ -940,3 +940,12 @@ body.view-updates .bnav, body.view-home .bnav { grid-template-columns: 1fr 1fr 1
 .share-btn svg { width: 18px; height: 18px; }
 .album-share { max-width: 520px; margin: 0 auto 12px; font-family: var(--sans); }
 .selecting .album-share { display: none; }
+
+/* Sticky page switches (Album, My uploads, Missions): solid, with a paper band behind
+   so photos/cards never show through while scrolling. */
+.album-seg, .ms-seg {
+  position: sticky; top: 52px; z-index: 20;
+  background: #F1EAE4;                                   /* solid version of the light grey track */
+  box-shadow: 0 0 0 100vmax var(--paper);                /* paper band across the full width… */
+  clip-path: inset(-6px -100vmax -10px -100vmax);        /* …limited to just around the switch */
+}
