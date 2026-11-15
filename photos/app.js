@@ -759,8 +759,17 @@
 
   // keep the mission views fresh when the album list changes
   const _refresh = refresh;
+  // "Share your photos with us" banner: only until this phone has uploaded something.
+  function updateShareBanner() {
+    const uploaded = !!store.get('wp_uploaded') || state.items.some(i => i.m);
+    if (uploaded && !store.get('wp_uploaded')) store.set('wp_uploaded', '1');
+    const b = $('.album-share');
+    if (b) b.hidden = uploaded;
+  }
+
   refresh = function () {
     _refresh();
+    updateShareBanner();
     if (document.body.classList.contains('view-missions')) renderMissions();
     if (document.body.classList.contains('view-mission') && detailId) renderMissionDetail(detailId);
     if (document.body.classList.contains('view-home')) renderHome();
@@ -1608,6 +1617,7 @@
     try {
       const r = DEMO ? { items: demoMine.slice() } : await api({ action: 'mine' }, 2);
       mine.items = r.items || [];
+      if (mine.items.length) { store.set('wp_uploaded', '1'); updateShareBanner(); }
       mine.sel.clear();
       renderMine();
     } catch (e) {
@@ -1753,6 +1763,7 @@
   function addMine(id, job, dims) {
     job.id = id;
     store.set('wp_uploaded', '1');
+    updateShareBanner();
     if (DEMO) demoMine.unshift({ id, g: job.guest, ms: job.mission || '', v: job.mime.startsWith('video/') ? 1 : 0, w: dims.w, h: dims.h, p: job.private ? 1 : 0 });
     if (job.mission) markMissionDone(job.mission);
     state.local.set(id, job.url);
