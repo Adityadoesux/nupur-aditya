@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611152221">
+<link rel="stylesheet" href="style.css?v=202611152230">
 </head>
 <body>
 
@@ -81,7 +81,7 @@
     </div>
 
 
-    <h3 class="up-h">Updates from Nupur &amp; Aditya</h3>
+    <h3 class="up-h">Announcements</h3>
     <div class="ann-list" id="annList"></div>
     <p class="up-empty" id="annEmpty">No updates yet. We'll post here when things start.</p>
   </section>
@@ -280,7 +280,7 @@
   </div>
   <!-- Admin only, on Home: write an announcement -->
   <button type="button" class="ann-fab" id="annFab" aria-label="Send an update">
-    <svg viewBox="0 0 24 24"><path d="M18 8a3 3 0 010 6"/><path d="M10 8v11a1 1 0 01-1 1H8a1 1 0 01-1-1v-5"/><path d="M12 8l4.5-3.8a.9.9 0 011.5.7v12.2a.9.9 0 01-1.5.7L12 14H4a1 1 0 01-1-1V9a1 1 0 011-1h8"/></svg>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>
   </button>
 
   <!-- Bottom bar: only on inner pages (album, missions, my uploads) -->
@@ -355,6 +355,7 @@
     <h2 class="sheet-title" id="csTitle">Send an update</h2>
     <p class="sheet-sub">Everyone sees it on Home and in the banner.</p>
     <div class="compose" id="compose">
+      <div class="cs-icons" id="csIcons" role="group" aria-label="Icon"></div>
       <textarea id="composeText" class="input" rows="4" maxlength="240" placeholder="Lunch is open in the banquet hall"></textarea>
       <div class="compose-row">
         <label class="compose-when"><input type="checkbox" id="composeLater"> Schedule for later</label>
@@ -429,7 +430,7 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="config.js?v=202611152221"></script>
-<script src="app.js?v=202611152221"></script>
+<script src="config.js?v=202611152230"></script>
+<script src="app.js?v=202611152230"></script>
 </body>
 </html>

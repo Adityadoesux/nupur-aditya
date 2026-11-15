@@ -907,7 +907,9 @@
       && $('#sheet').hidden;
     b.hidden = !show;
     if (!show) return;
-    $('#annBannerText').textContent = latest.text;
+    const parts = splitIcon(latest.text);
+    $('#annBannerText').textContent = parts.body;
+    $('#annBanner .ann-ic').textContent = parts.icon;
     $('#annBannerTime').textContent = `From Nupur & Aditya · ${ago(latest.ts)}`;
     b.dataset.id = latest.id;
   }
@@ -941,7 +943,8 @@
       const el = document.createElement('div');
       el.className = 'ann' + (scheduled ? ' scheduled' : '');
       el.innerHTML = `
-        <p>${esc(a.text)}</p>
+        <span class="ann-ic">${esc(splitIcon(a.text).icon)}</span>
+        <p>${esc(splitIcon(a.text).body)}</p>
         <small>${scheduled ? `⏰ Scheduled for ${fmtDay(a.ts)}, ${fmtTime(a.ts)}` : ago(a.ts)}</small>
         ${state.isAdmin ? `<button type="button" class="ann-more" aria-label="More options"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
         <div class="ann-actions" hidden>
@@ -1107,7 +1110,48 @@
 
   /* ---------- compose (admin) ---------- */
   $('#composeLater').onchange = e => { $('#composeAt').hidden = !e.target.checked; };
+  const ANN_ICONS = ['📣', '🍽️', '🚌', '💃', '🎉', '⏰', '📸', '❤️'];
+  const ICON_RULES = [
+    [/lunch|dinner|breakfast|food|buffet|snack|chai|tea|dessert|eat/i, '🍽️'],
+    [/bus|cab|car|pickup|pick-up|transport|lobby|leave|leaving|depart/i, '🚌'],
+    [/danc|sangeet|dj|music|dhol|baraat/i, '💃'],
+    [/photo|picture|pic|upload|camera|selfie/i, '📸'],
+    [/delay|late|postpon|moved|resched|time|minutes|min |starts|starting|begins|now/i, '⏰'],
+    [/thank|love|bless|grateful|miss/i, '❤️'],
+    [/congrat|celebrat|party|cheers|toast|welcome/i, '🎉']
+  ];
+  const LEADING_EMOJI = /^(\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*️?)\s*/u;
+  function splitIcon(text) {
+    const m = String(text || '').match(LEADING_EMOJI);
+    return m ? { icon: m[1], body: text.slice(m[0].length) } : { icon: '📣', body: text };
+  }
+  function guessIcon(text) {
+    for (const [re, icon] of ICON_RULES) if (re.test(text)) return icon;
+    return '📣';
+  }
+  let csIcon = '📣', csIconPicked = false;
+  function renderIconPicker() {
+    const wrap = $('#csIcons');
+    wrap.innerHTML = '';
+    ANN_ICONS.forEach(ic => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cs-icon';
+      b.textContent = ic;
+      b.setAttribute('aria-pressed', String(ic === csIcon));
+      b.onclick = () => { csIcon = ic; csIconPicked = true; renderIconPicker(); };
+      wrap.appendChild(b);
+    });
+  }
+  $('#composeText').addEventListener('input', e => {
+    if (csIconPicked) return;
+    const g = guessIcon(e.target.value);
+    if (g !== csIcon) { csIcon = g; renderIconPicker(); }
+  });
+
   function openCompose() {
+    csIcon = '📣'; csIconPicked = false;
+    renderIconPicker();
     $('#composeSheet').hidden = false;
     document.body.classList.add('no-scroll');
     setTimeout(() => $('#composeText').focus(), 250);
@@ -1129,7 +1173,7 @@
       at = new Date(`${v}:00+05:30`).toISOString();
     }
     try {
-      await postAnnouncement(text, at);
+      await postAnnouncement(LEADING_EMOJI.test(text) ? text : `${csIcon} ${text}`, at);
       $('#composeText').value = '';
       $('#composeLater').checked = false;
       $('#composeAt').hidden = true;
