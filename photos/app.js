@@ -143,6 +143,7 @@
     renderNowCard();
     setInterval(() => { renderNowCard(); if (document.visibilityState === 'visible') loadAnnouncements(); }, 60000);
     $('#selToggle').hidden = !state.isAdmin;
+    document.body.classList.toggle('is-admin', state.isAdmin);
 
     $$('[data-open-upload]').forEach(b => b.addEventListener('click', () => pickFiles()));
     // Phones fire "resize" whenever the address bar shrinks/grows while scrolling.
@@ -834,7 +835,6 @@
     state.ann.forEach(a => markSeen(a.id));
     renderBellDots();
     renderBanner();
-    $('#compose').hidden = !state.isAdmin;
     renderPushCard();
     renderUpdates();
   }
@@ -943,12 +943,14 @@
       el.innerHTML = `
         <p>${esc(a.text)}</p>
         <small>${scheduled ? `⏰ Scheduled for ${fmtDay(a.ts)}, ${fmtTime(a.ts)}` : ago(a.ts)}</small>
-        ${state.isAdmin ? `<div class="ann-actions">
+        ${state.isAdmin ? `<button type="button" class="ann-more" aria-label="More options"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+        <div class="ann-actions" hidden>
           <button type="button" class="chip-btn" data-act="copy">Copy</button>
           <a class="chip-btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shareText(a))}">Send on WhatsApp</a>
           <button type="button" class="chip-btn danger" data-act="del">Delete</button>
         </div>` : ''}`;
       if (state.isAdmin) {
+        el.querySelector('.ann-more').onclick = () => { const r = el.querySelector('.ann-actions'); r.hidden = !r.hidden; };
         el.querySelector('[data-act="copy"]').onclick = async () => {
           try { await navigator.clipboard.writeText(shareText(a)); toast('Copied. Paste it in WhatsApp'); }
           catch (e) { toast('Could not copy on this browser'); }
@@ -1105,6 +1107,18 @@
 
   /* ---------- compose (admin) ---------- */
   $('#composeLater').onchange = e => { $('#composeAt').hidden = !e.target.checked; };
+  function openCompose() {
+    $('#composeSheet').hidden = false;
+    document.body.classList.add('no-scroll');
+    setTimeout(() => $('#composeText').focus(), 250);
+  }
+  function closeCompose() {
+    $('#composeSheet').hidden = true;
+    document.body.classList.remove('no-scroll');
+  }
+  $('#annFab').onclick = openCompose;
+  $$('[data-close-cs]').forEach(b => b.onclick = closeCompose);
+
   $('#composeSend').onclick = async () => {
     const text = $('#composeText').value.trim();
     if (!text) { toast('Write a message first'); return; }
@@ -1119,6 +1133,7 @@
       $('#composeText').value = '';
       $('#composeLater').checked = false;
       $('#composeAt').hidden = true;
+      closeCompose();
       toast(at ? 'Update scheduled' : 'Update sent');
     } catch (e) { toast('Could not send: ' + e.message); }
   };

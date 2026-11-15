@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611152211">
+<link rel="stylesheet" href="style.css?v=202611152216">
 </head>
 <body>
 
@@ -72,15 +72,6 @@
       <button type="button" class="link-btn" id="iosGuideClose">Got it</button>
     </div>
 
-    <div class="up-card compose" id="compose" hidden>
-      <b class="compose-title">Send an update</b>
-      <textarea id="composeText" class="input" rows="3" maxlength="240" placeholder="Lunch is open in the banquet hall"></textarea>
-      <div class="compose-row">
-        <label class="compose-when"><input type="checkbox" id="composeLater"> Schedule for later</label>
-        <input type="datetime-local" id="composeAt" class="input" hidden>
-      </div>
-      <button type="button" class="btn btn-primary" id="composeSend">Send update</button>
-    </div>
 
     <h3 class="up-h">Updates from Nupur &amp; Aditya</h3>
     <div class="ann-list" id="annList"></div>
@@ -279,6 +270,11 @@
     </button>
     <a class="btn btn-secondary btn-block cta-view" href="#album">View album</a>
   </div>
+  <!-- Admin only, on Home: write an announcement -->
+  <button type="button" class="ann-fab" id="annFab" aria-label="Send an update">
+    <svg viewBox="0 0 24 24"><path d="M18 8a3 3 0 010 6"/><path d="M10 8v11a1 1 0 01-1 1H8a1 1 0 01-1-1v-5"/><path d="M12 8l4.5-3.8a.9.9 0 011.5.7v12.2a.9.9 0 01-1.5.7L12 14H4a1 1 0 01-1-1V9a1 1 0 011-1h8"/></svg>
+  </button>
+
   <!-- Bottom bar: only on inner pages (album, missions, my uploads) -->
   <nav class="bnav" aria-label="Main">
     <a class="bn" data-n="home" href="#home">
@@ -338,6 +334,25 @@
     <div class="sheet-actions" id="doneActions" hidden>
       <button class="btn btn-secondary" id="addMore">Add more</button>
       <button class="btn btn-primary" id="seeAlbum">Go to album</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin: write an announcement (opened from the megaphone button on Home) -->
+<div id="composeSheet" class="sheet" hidden>
+  <div class="sheet-backdrop" data-close-cs></div>
+  <div class="sheet-panel cs-panel" role="dialog" aria-modal="true" aria-labelledby="csTitle">
+    <div class="sheet-grab"></div>
+    <button class="icon-btn sheet-x" data-close-cs aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 class="sheet-title" id="csTitle">Send an update</h2>
+    <p class="sheet-sub">Everyone sees it on Home and in the banner.</p>
+    <div class="compose" id="compose">
+      <textarea id="composeText" class="input" rows="4" maxlength="240" placeholder="Lunch is open in the banquet hall"></textarea>
+      <div class="compose-row">
+        <label class="compose-when"><input type="checkbox" id="composeLater"> Schedule for later</label>
+        <input type="datetime-local" id="composeAt" class="input" hidden>
+      </div>
+      <button type="button" class="btn btn-primary" id="composeSend">Send update</button>
     </div>
   </div>
 </div>
@@ -406,7 +421,7 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="config.js?v=202611152211"></script>
-<script src="app.js?v=202611152211"></script>
+<script src="config.js?v=202611152216"></script>
+<script src="app.js?v=202611152216"></script>
 </body>
 </html>
