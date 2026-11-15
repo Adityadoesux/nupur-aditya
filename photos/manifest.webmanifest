@@ -1,0 +1,14 @@
+{
+  "name": "Nupur & Aditya · Wedding",
+  "short_name": "N & A Wedding",
+  "description": "Schedule, updates and photos from Nupur & Aditya's wedding.",
+  "start_url": "./?k=80a7960e68#home",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FEF7F1",
+  "theme_color": "#FEF7F1",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1214,9 +1214,11 @@
   /* ---------- push opt-in ---------- */
   const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  // "On" = permission granted AND this phone is registered with Firebase.
+  const pushReady = () => !!(C.FIREBASE && C.FIREBASE.apiKey && C.VAPID_KEY);
   function renderPushCard() {
-    const supported = 'Notification' in window;
-    const on = supported && Notification.permission === 'granted';
+    const supported = 'Notification' in window && 'serviceWorker' in navigator;
+    const on = supported && Notification.permission === 'granted' && store.get('wp_push') === 'on';
     const blocked = supported && Notification.permission === 'denied';
     $('#pushCard').classList.toggle('on', on);
     $('#pushTitle').textContent = on ? 'Updates are on' : 'Get updates on your phone';
@@ -1226,14 +1228,57 @@
     $('#pushBtn').hidden = on || blocked;
     $('#pushBtn').textContent = isIOS && !isStandalone ? 'How to turn on' : 'Turn on';
   }
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      if ([...document.scripts].some(s => s.src === src)) return res();
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load ' + src));
+      document.head.appendChild(s);
+    });
+  }
+  const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+
+  // Register this phone with Firebase and give its token to our backend.
+  async function registerPush() {
+    await loadScript(FB + 'firebase-app-compat.js');
+    await loadScript(FB + 'firebase-messaging-compat.js');
+    if (!firebase.apps.length) firebase.initializeApp(C.FIREBASE);
+    const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: './' });
+    await navigator.serviceWorker.ready;
+    const messaging = firebase.messaging();
+    const token = await messaging.getToken({ vapidKey: C.VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) throw new Error('No token');
+    if (!DEMO) await api({ action: 'subscribe', token }, 3);
+    store.set('wp_push', 'on');
+    // While the site is open, show new announcements in the page instead of a system notification.
+    messaging.onMessage(() => { loadAnnouncements(); });
+    return token;
+  }
+
   $('#pushBtn').onclick = async () => {
     if (isIOS && !isStandalone) { $('#iosGuide').hidden = false; return; }
-    if (!('Notification' in window)) { toast("This browser can't show notifications"); return; }
-    const res = await Notification.requestPermission();
-    // TODO(backend): register this phone with Firebase Cloud Messaging so announcements arrive as notifications.
-    renderPushCard();
-    if (res === 'granted') toast("You're all set");
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) { toast("This browser can't show notifications"); return; }
+    if (!pushReady()) { toast('Phone notifications are being set up. Check back soon!'); return; }
+    const btn = $('#pushBtn');
+    btn.disabled = true;
+    try {
+      const res = await Notification.requestPermission();
+      if (res !== 'granted') { renderPushCard(); return; }
+      await registerPush();
+      renderPushCard();
+      toast("You're all set. We'll notify you");
+    } catch (e) {
+      console.error(e);
+      toast('Could not turn on notifications. Please try again.');
+    } finally {
+      btn.disabled = false;
+    }
   };
+
+  // Already turned on earlier → quietly refresh the registration (tokens can change).
+  if (pushReady() && 'Notification' in window && Notification.permission === 'granted' && store.get('wp_push') === 'on') {
+    registerPush().catch(() => {});
+  }
   $('#iosGuideClose').onclick = () => { $('#iosGuide').hidden = true; };
 
   /* ================================================================ */

@@ -43,6 +43,19 @@ window.WP_CONFIG = {
     { id: 'e06', icon: '🙏', title: 'Vidai',              day: '2026-12-02', start: '23:00', end: '23:45', venue: 'Monument Lawn' }
   ],
 
+  // Phone notifications (Firebase Cloud Messaging). These values are public by design.
+  // Paste the firebaseConfig from Firebase → Project settings → Your apps → Web app.
+  FIREBASE: {
+    apiKey: 'AIzaSyCVn1YnuqCXoRY2gLMJh1rRYb2JAzxIdo4',
+    authDomain: 'nupur-aditya-wedding.firebaseapp.com',
+    projectId: 'nupur-aditya-wedding',
+    storageBucket: 'nupur-aditya-wedding.firebasestorage.app',
+    messagingSenderId: '103922366022',
+    appId: '1:103922366022:web:2a9e2fd5dd6b4efdda7c47'
+  },
+  // Firebase → Project settings → Cloud Messaging → Web Push certificates → Key pair
+  VAPID_KEY: 'BPajfcyqdCblpVe2iiVfEg2emF8pSiEEhrpc9DFhKdgC_KL6GNH6LodfCVmuwEUMrSjnalMzZFQzWFfYnJNwjhw',
+
   MAX_FILE_MB: 150,
   PARALLEL_UPLOADS: 2
 };
