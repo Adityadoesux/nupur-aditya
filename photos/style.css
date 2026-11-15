@@ -1008,3 +1008,10 @@ body.is-admin.view-home .ann-fab {
 .cs-icon[aria-pressed="true"] { border-color: var(--rose); background: rgba(206, 102, 131, .08); box-shadow: inset 0 0 0 1px var(--rose); }
 .cs-icons { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
 .cs-icon { width: auto; height: auto; aspect-ratio: 1; font-size: 18px; padding: 0; border-radius: 10px; }
+/* Keep the + centred: equal side columns even with the long "Announcements" label */
+body.view-album .bnav, body.view-missions .bnav, body.view-mission .bnav, body.view-mine .bnav,
+body.view-updates .bnav, body.view-home .bnav {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+  padding-left: 2px; padding-right: 2px;
+}
+.bn { overflow: visible; }
