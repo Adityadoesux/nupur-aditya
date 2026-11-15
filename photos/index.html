@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
-<link rel="stylesheet" href="style.css?v=202611152205">
+<link rel="stylesheet" href="style.css?v=202611152207">
 </head>
 <body>
 
@@ -153,6 +153,12 @@
     <div class="seg ms-seg" role="tablist" aria-label="Missions view">
       <button type="button" role="tab" data-mt="list" aria-selected="true">Missions</button>
       <button type="button" role="tab" data-mt="board" aria-selected="false">Leaderboard</button>
+    </div>
+
+    <!-- Slim progress strip: appears under the switch once the big card scrolls away -->
+    <div class="ms-mini" id="msMini" aria-hidden="true">
+      <span class="ms-mini-count"><b id="msMiniDone">0</b> of <span id="msMiniTotal">15</span></span>
+      <span class="ms-mini-bar"><i id="msMiniBar"></i></span>
     </div>
 
     <div id="msPanelList">
@@ -405,7 +411,7 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="config.js?v=202611152205"></script>
-<script src="app.js?v=202611152205"></script>
+<script src="config.js?v=202611152207"></script>
+<script src="app.js?v=202611152207"></script>
 </body>
 </html>

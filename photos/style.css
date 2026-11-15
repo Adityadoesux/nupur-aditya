@@ -949,3 +949,19 @@ body.view-updates .bnav, body.view-home .bnav { grid-template-columns: 1fr 1fr 1
   box-shadow: 0 0 0 100vmax var(--paper);                /* paper band across the full width… */
   clip-path: inset(-6px -100vmax -10px -100vmax);        /* …limited to just around the switch */
 }
+
+
+/* Missions: slim sticky progress (count + thin bar) */
+.ms-mini {
+  position: fixed; left: 0; right: 0; z-index: 19; margin: 0 auto; width: calc(100% - 28px); max-width: 420px;
+  display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 12px;
+  background: #fff; border: 1px solid rgba(58, 58, 58, .08); box-shadow: 0 4px 14px rgba(58, 40, 30, .08);
+  font-family: var(--sans); font-size: 13px; color: var(--ink-2);
+  opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+}
+.ms-mini.show { opacity: 1; transform: none; }
+body:not(.view-missions) .ms-mini { display: none; }
+.ms-mini-count { flex: none; white-space: nowrap; }
+.ms-mini-count b { color: var(--ink); font-size: 14px; }
+.ms-mini-bar { flex: 1; height: 6px; border-radius: 6px; background: rgba(58, 58, 58, .08); overflow: hidden; }
+.ms-mini-bar i { display: block; height: 100%; width: 0; border-radius: 6px; background: linear-gradient(90deg, #D9A441, var(--rose)); transition: width .3s ease; }

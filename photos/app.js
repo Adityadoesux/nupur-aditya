@@ -592,6 +592,22 @@
     return AV_COLORS[h % AV_COLORS.length];
   }
 
+  // Show the slim strip only while the big progress card is scrolled out of view (Missions tab only).
+  let miniObs = null;
+  function watchMiniProgress() {
+    const mini = $('#msMini');
+    const seg = $('.ms-seg');
+    const card = $('#msPanelList .ms-card-top');
+    const stuckBottom = 52 + seg.offsetHeight;         // header + switch, when stuck
+    mini.style.top = `${stuckBottom + 12}px`;
+    if (miniObs) miniObs.disconnect();
+    miniObs = new IntersectionObserver(([e]) => {
+      const show = !e.isIntersecting && msTab === 'list' && document.body.classList.contains('view-missions');
+      mini.classList.toggle('show', show);
+    }, { rootMargin: `-${stuckBottom}px 0px 0px 0px` });
+    miniObs.observe(card);
+  }
+
   function renderMissions() {
     $$('.ms-seg button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mt === msTab)));
     $('#msPanelList').hidden = msTab !== 'list';
@@ -602,6 +618,10 @@
     $('#msDone').textContent = done.size;
     $('#msTotal').textContent = total;
     $('#msBar').style.width = `${total ? Math.round((done.size / total) * 100) : 0}%`;
+    $('#msMiniDone').textContent = done.size;
+    $('#msMiniTotal').textContent = total;
+    $('#msMiniBar').style.width = $('#msBar').style.width;
+    watchMiniProgress();
     const allDone = total && done.size >= total;
     $('#msBadge').hidden = !allDone;
 
